@@ -1,0 +1,55 @@
+<%- include('partials/header'); -%>
+    <!-- GALLERY SECTION -->
+    <section id="gallery" class="gallery-section">
+        <div class="container">
+            <h2 class="section-title">Videos</h2>
+            <div class="gallery-grid">
+                <!-- <header>
+        <h1>Gadymy Miras Syýahatçylyk Kärhanasy</h1>
+        <p>Türkmenistanyň gadymy mirasyny we gözelliklerini açyň</p>
+         </header> -->
+                <div class="video-gallery">
+                    <!-- Wideo 1 -->
+                    <div class="video-item" onclick="playVideo(this)">
+                        <div class="video-wrapper">
+                            <img src="image/videoimage/haly.jpg" alt="Gadymy Merw" class="poster">
+                            <video controls data-src="video/1.mp4">
+                                <!-- Ýüklenmeýär, diňe basylanda -->
+                            </video>
+                            <div class="play-button"></div>
+                        </div>
+                        <div class="video-caption">Gadymy Merw taryhy ýadygärligi</div>
+                    </div>
+
+                    <!-- Wideo 2 -->
+                    <div class="video-item" onclick="playVideo(this)">
+                        <div class="video-wrapper">
+                            <img src="image/videoimage/darwaza.jpg" alt="Darwaza" class="poster">
+                            <video controls data-src="video/darwaza.mp4"></video>
+                            <div class="play-button"></div>
+                        </div>
+                        <div class="video-caption">Darwaza gaz krateri – "Jähennem derwezesi"</div>
+                    </div>
+
+                    <!-- Wideo 3 -->
+                    <div class="video-item" onclick="playVideo(this)">
+                        <div class="video-wrapper">
+                            <img src="image/videoimage/gezelenc.jpg" alt="Aşgabat" class="poster">
+                            <video controls data-src="video/gezelenc.mp4"></video>
+                            <div class="play-button"></div>
+                        </div>
+                        <div class="video-caption">Türkmenistanyň ajaýyp ýerleri</div>
+                    </div>
+
+                    <!-- Wideo 4 -->
+                    <div class="video-item" onclick="playVideo(this)">
+                        <div class="video-wrapper">
+                            <img src="posters/koneurgench.jpg" alt="Köneürgenç" class="poster">
+                            <video controls data-src="videos/koneurgench.mp4"></video>
+                            <div class="play-button"></div>
+                        </div>
+                        <div class="video-caption">Köneürgenç – UNESCO mirasy</div>
+                    </div>
+                </div>
+    </section>
+    <%- include('partials/footer'); -%>

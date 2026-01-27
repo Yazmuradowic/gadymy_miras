@@ -1,0 +1,138 @@
+<%- include('partials/header'); -%>
+    <!-- BANNER / HERO SECTION -->
+    <section id="home" class="hero">
+        <div class="hero-slider">
+            <div class="hero-slide active" style="background-image: url('image/banner/banner-1.jpg');"></div>
+            <div class="hero-slide" style="background-image: url('image/banner/banner-2.jpg');"></div>
+            <div class="hero-slide" style="background-image: url('image/banner/banner-3.jpg');"></div>
+            <div class="hero-slide" style="background-image: url('image/banner/banner-4.jpg');"></div>
+        </div>
+        <div class="hero-overlay"></div>
+        <div class="hero-content">
+            <h1 class="hero-title">Dünýäni Biziň Bilen Gez</h1>
+            <p class="hero-subtitle">Iň gowy turlar we hyzmatlar</p>
+            <div class="hero-buttons">
+                <a href="#tours" class="btn btn-primary">Tour bron et</a>
+                <a href="#services" class="btn btn-secondary">Hyzmatlar</a>
+            </div>
+        </div>
+    </section>
+    <!-- TOURS SECTION -->
+
+     <section class="tours-section" id="tours">
+        <h2>POPULAR TOURS</h2>
+        <div class="tour-cards">
+            <% for (let i=0; i < Math.min(3, tours.length); i++) { %>
+                <!-- Darwaza Tour Karty (mysal) -->
+                <div class="tour-card">
+                    <div class="card-image">
+                        <img src="<%= tours[i].tour_picture %>" alt="Darwaza gaz krateri geçe">
+                        <div class="popular-badge"><%= tours[i].tour_popularity %></div>
+                        <div class="rating">⭐ 4.9 (53 reviews)</div>
+                        <div class="tour-location-chip"><span><i class="fas fa-map-marker-alt"></i></span> <%= tours[i].tour_region %></div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">
+                            <%= tours[i].tour_title %>
+                        </h3>
+                        <div class="location">Turkmenistan – Shavat arkaly</div>
+                        <div class="details">
+                            <span class="detail-item"><i class="fas fa-clock"></i> <%= tours[i].day %> day</span>
+                            <!-- <span class="detail-item">Kiçi topar</span> -->
+                            <span class="detail-item"><i class="fas fa-users"></i> Small group tour</span>
+                        </div>
+                        <div class="price-info">
+                            <!-- <span class="duration">Indiki ugur: 03.03.2026</span> -->
+                            <div class="group-price">
+                                <span><i class="fas fa-user-alt fa-xs mr-1"></i> 1 : <strong>   $485</strong></span>
+                                <span><i class="fas fa-users fa-xs mr-1"></i> 4+ : <strong>$265</strong></span>
+                            </div>
+                        </div>
+                        <a href="/tour/<%= tours[i].id %>" class="read-more">READ MORE</a>
+                    </div>
+                </div>
+                <% } %>
+        </div>
+    </section>
+
+    <!-- SERVICES SECTION -->
+    <section id="services" class="services-section">
+        <div class="container">
+            <h2 class="section-title">Hyzmatlar</h2>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-hotel"></i>
+                    </div>
+                    <h3>Oteller üçin bron etmek</h3>
+                    <p>Ýokary hilli otellerde ýerleşmek üçin bron etmek hyzmatlary. Rahatlyk we amatlylyk
+                        kepillendirilýär.</p>
+                    <a href="#contact" class="service-btn">Book now</a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-bus"></i>
+                    </div>
+                    <h3>Transport hyzmatlary</h3>
+                    <p>Şäherara we şäher içinde transport hyzmatlary. Taksi, awtobus we awtoulag kärendesizligi.</p>
+                    <a href="#contact" class="service-btn">Book now</a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-user-tie"></i>
+                    </div>
+                    <h3>Gid hyzmatlary</h3>
+                    <p>Ýerli gidler bilen gezelençler. Taryhy ýerler we medeniýet barada maglumatlar.</p>
+                    <a href="#contact" class="service-btn">Book now</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- FEEDBACK SECTION -->
+    <section id="feedback" class="feedback-section">
+        <div class="container">
+            <h2 class="section-title">Comments</h2>
+            <div class="feedback-slider">
+                <div class="feedback-track">
+                    <div class="feedback-slide active">
+                        <div class="feedback-content">
+                            <div class="feedback-stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <p class="feedback-text">"Ajaýyp hyzmat! Turlar we wiza hyzmatlary çalt we amatly. Iňlisçe
+                                we rusça dillerinde gowy hyzmat. Men öz dostlaryma maslahat berýärin."</p>
+                            <h4 class="feedback-author">— Aýna M.</h4>
+                        </div>
+                    </div>
+                    <% for (let j=1; j<4; j++) { %>
+                    <div class="feedback-slide">
+                        <div class="feedback-content">
+                            <div class="feedback-stars">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <p class="feedback-text"><%= feedback[j].text %></p>
+                            <h4 class="feedback-author"><%= feedback[j].name %></h4>
+                        </div>
+                    </div>
+                    <% } %>
+                </div>
+                <div class="slider-controls">
+                    <button class="slider-btn prev-btn"><i class="fas fa-chevron-left"></i></button>
+                    <div class="slider-dots"></div>
+                    <button class="slider-btn next-btn"><i class="fas fa-chevron-right"></i></button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <%- include('partials/footer'); -%>

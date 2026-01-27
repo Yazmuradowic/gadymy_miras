@@ -1,0 +1,50 @@
+<%- include('partials/header'); -%>
+    <!-- PAGE HEADER -->
+    <section class="page-header">
+        <div class="page-header-overlay"></div>
+        <div class="page-header-content">
+            <h1>Turlar</h1>
+            <p>Iň gowy syýahat paketleri</p>
+        </div>
+    </section>
+
+    <!-- TOURS SECTION -->
+
+ 
+
+    <section class="tours-section">
+        <h2>Meşhur Syýahatlar</h2>
+        <div class="tour-cards">
+            <% for (let i=0; i < tours.length; i++) { %>
+                <!-- Darwaza Tour Karty (mysal) -->
+                <div class="tour-card">
+                    <div class="card-image">
+                        <img src="<%= tours[i].tour_picture %>" alt="Darwaza gaz krateri geçe">
+                        <div class="popular-badge"><%= tours[i].tour_popularity %></div>
+                        <div class="rating">⭐ 4.9 (53 reviews)</div>
+                        <div class="tour-location-chip"><span><i class="fas fa-map-marker-alt"></i></span> <%= tours[i].tour_region %></div>
+                    </div>
+                    <div class="card-content">
+                        <h3 class="card-title">
+                            <%= tours[i].tour_title %>
+                        </h3>
+                        <div class="location"><%= tours[i].tour_start %></div>
+                        <div class="details">
+                            <span class="detail-item"><i class="fas fa-clock"></i> <%= tours[i].day %> day</span>
+                            <!-- <span class="detail-item">Kiçi topar</span> -->
+                            <span class="detail-item"><i class="fas fa-users"></i> Small group tour</span>
+                        </div>
+                        <div class="price-info">
+                            <!-- <span class="duration">Indiki ugur: 03.03.2026</span> -->
+                            <div class="group-price">
+                                <span><i class="fas fa-user-alt fa-xs mr-1"></i> 2+ : <strong>$485</strong></span>
+                                <span><i class="fas fa-users fa-xs mr-1"></i> 4+ : <strong>$265</strong></span>
+                            </div>
+                        </div>
+                        <a href="/tour/<%= tours[i].id %>" class="read-more">READ MORE</a>
+                    </div>
+                </div>
+                <% } %>
+        </div>
+    </section>
+    <%- include('partials/footer'); -%>

@@ -1,0 +1,29 @@
+<%- include('partials/header'); -%>
+    <section id="tours" class="tours-section">
+        <div class="container">
+            <h2 class="section-title">
+                <%= tur.tour_title %>
+            </h2>
+            <div class="tours-grid">
+                <div class="tour-card">
+                    <div class="tour-image">
+                        <img src="<%= tur.tour_picture %>" alt="Aşgabat şäher syýahaty">
+                    </div>
+                    <div class="tour-content-1">
+                        <p>
+                            <%= tur.tour_text %>
+                        </p>
+                        <div class="tour-info">
+                            <span><i class="fas fa-clock"></i>
+                                <%= tur.day %>
+                            </span>
+                            <span><i class="fas fa-users"></i>
+                                <%= tur.tour_person %>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <%- include('partials/footer'); -%>
