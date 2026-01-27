@@ -209,32 +209,32 @@ if (contactForm) {
             showError(name, 'Adyňyzy giriziň');
             isValid = false;
         } else if (name.value.trim().length < 2) {
-            showError(name, 'Ad azyndan 2 harp bolmaly');
+            showError(name, 'Name must be at least 2 characters');
             isValid = false;
         }
 
         // Validate Email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (email.value.trim() === '') {
-            showError(email, 'Email salgyňyzy giriziň');
+            showError(email, 'Please enter your email address');
             isValid = false;
         } else if (!emailRegex.test(email.value)) {
-            showError(email, 'Dogry email salgy giriziň');
+            showError(email, 'Please enter a valid email address');
             isValid = false;
         }
 
         // Validate Message
         if (message.value.trim() === '') {
-            showError(message, 'Hat ýazyň');
+            showError(message, 'Please write a message');
             isValid = false;
         } else if (message.value.trim().length < 10) {
-            showError(message, 'Hat azyndan 10 harp bolmaly');
+            showError(message, 'Message must be at least 10 characters');
             isValid = false;
         }
 
         if (isValid) {
             // Show success message
-            alert('Sag boluň! Siziň hatyňyz iberildi. Gysga wagtdan soň siz bilen habarlaşarys.');
+            alert('Thank you! Your message has been sent. We will contact you soon.');
             contactForm.reset();
         }
     });
