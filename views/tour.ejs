@@ -1,29 +1,142 @@
 <%- include('partials/header'); -%>
-    <section id="tours" class="tours-section">
-        <div class="container">
-            <h2 class="section-title">
-                <%= tur.tour_title %>
-            </h2>
-            <div class="tours-grid">
-                <div class="tour-card">
-                    <div class="tour-image">
-                        <img src="<%= tur.tour_picture %>" alt="Aşgabat şäher syýahaty">
+<div class="tour-detail-page">
+    <div class="container">
+        <nav class="tour-breadcrumb">
+            <a href="/">Home</a>
+            <span>›</span>
+            <a href="/tours">Tours</a>
+            <span>›</span>
+            <span><%= typeof tur !== 'undefined' && tur.tour_title ? tur.tour_title : 'Tour' %></span>
+        </nav>
+
+        <div class="tour-detail-card">
+            <% const bannerImg = (typeof tur !== 'undefined' && tur.tour_picture) ? tur.tour_picture : 'https://tmtourism.com/uploads/tours/45/sT8GFa2PRPhE2TodxmFioJRHaFMD72mbcpwSjBHZ.webp'; %>
+            <div class="tour-banner" style="background-image: url('<%= bannerImg %>');" role="img" aria-label="Tour cover"></div>
+            <div class="card-body">
+                <h1 class="card-title"><%= typeof tur !== 'undefined' && tur.tour_title ? tur.tour_title : '3-Day Turkmenistan Silk Road Tour: Merv &amp; Darvaza Crater' %></h1>
+                <div class="short_description">
+                    <p><strong>Route:</strong> <%= typeof tur !== 'undefined' && tur.tour_start ? tur.tour_start : 'Farap — Merv — Ashgabat — Darvaza — Shavat' %></p>
+                    <p>A short journey to the legendary Darvaza Crater with an overnight stay at the fiery abyss, including sunset, sunrise, and return. Explore UNESCO ruins, the marble city of Ashgabat, and camp at the Darvaza Gas Crater.</p>
+                </div>
+                <div class="tour-stats-row">
+                    <div class="tour-stat-box">
+                        <i class="fas fa-calendar-alt"></i>
+                        <div class="stat-value"><%= typeof tur !== 'undefined' && tur.day ? tur.day : '3' %></div>
+                        <div class="stat-label">days</div>
                     </div>
-                    <div class="tour-content-1">
-                        <p>
-                            <%= tur.tour_text %>
-                        </p>
-                        <div class="tour-info">
-                            <span><i class="fas fa-clock"></i>
-                                <%= tur.day %>
-                            </span>
-                            <span><i class="fas fa-users"></i>
-                                <%= tur.tour_person %>
-                            </span>
+                    <div class="tour-stat-box">
+                        <i class="fas fa-users"></i>
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">groups</div>
+                    </div>
+                    <div class="tour-stat-box">
+                        <i class="fas fa-bed"></i>
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">options</div>
+                    </div>
+                </div>
+
+                <h5 class="tour-program-title">What is included / not included</h5>
+
+                <div class="accordion tour-accordion" id="accordionInclusions">
+                    <div class="card">
+                        <div class="card-header p-0" id="headingInclusions">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseInclusions" aria-expanded="true" aria-controls="collapseInclusions">
+                                    <h4 class="mb-0">What's included? <i class="fas fa-chevron-down ml-2 chevron-icon"></i></h4>
+                                </button>
+                            </h5>
+                        </div>
+                        <div id="collapseInclusions" class="collapse show" aria-labelledby="headingInclusions" data-parent="#accordionInclusions">
+                            <div class="card-body">
+                                <ul>
+                                    <li>Letter of Invitation (LoI) for Turkmenistan visa and assistance with mandatory registration.</li>
+                                    <li>Accommodation in standard hotel rooms and yurts at Darvaza.</li>
+                                    <li>Private transport and English-speaking guide for the days and routes specified.</li>
+                                    <li>All expenses of your driver and guide (fuel, meals, accommodation).</li>
+                                    <li>Daily breakfasts. Dinner and overnight in a yurt at the Darvaza gas crater.</li>
+                                    <li>Entrance fees and photography permits for museums and attractions.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header p-0" id="headingExclusions">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseExclusions" aria-expanded="false" aria-controls="collapseExclusions">
+                                    <h4 class="mb-0">What's not included? <i class="fas fa-chevron-down ml-2 chevron-icon"></i></h4>
+                                </button>
+                            </h5>
+                        </div>
+                        <div id="collapseExclusions" class="collapse" aria-labelledby="headingExclusions" data-parent="#accordionInclusions">
+                            <div class="card-body">
+                                <ul>
+                                    <li>Visa and other border fees (obtainable at embassy or border).</li>
+                                    <li>International flights and any transport to/from Turkmenistan.</li>
+                                    <li>Meals not in the program (approx. 3–8 USD per meal per person).</li>
+                                    <li>Travel and medical insurance (highly recommended).</li>
+                                    <li>Personal expenses (souvenirs, laundry, minibar) and tips for guides/drivers.</li>
+                                    <li>Drones (not allowed in Turkmenistan).</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
+
+                <h5 class="tour-program-title">Tour program</h5>
+
+                <div class="accordion tour-accordion" id="itineraryAccordion">
+                    <div class="card">
+                        <div class="card-header p-0" id="headingDay1">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseDay1" aria-expanded="true" aria-controls="collapseDay1">
+                                    <h4 class="mb-0">Day 1: Farap – Merv – Ashgabat <i class="fas fa-chevron-down ml-2 chevron-icon"></i></h4>
+                                </button>
+                            </h5>
+                        </div>  
+                        <div id="collapseDay1" class="collapse show" aria-labelledby="headingDay1" data-parent="#itineraryAccordion">
+                            <div class="card-body">
+                                <p>Your guide will meet you at the Farap border crossing. After customs, you will travel to the ancient city of Merv, a UNESCO World Heritage Site. Explore the ruins, including the Great Kyz Kala, the Mausoleum of Sultan Sanjar, and ancient caravanserais. After lunch, drive to Ashgabat. Check into your hotel and enjoy dinner at a local restaurant.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header p-0" id="headingDay2">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseDay2" aria-expanded="false" aria-controls="collapseDay2">
+                                    <h4 class="mb-0">Day 2: Darvaza Gas Crater <i class="fas fa-chevron-down ml-2 chevron-icon"></i></h4>
+                                </button>
+                            </h5>
+                        </div>
+                        <div id="collapseDay2" class="collapse" aria-labelledby="headingDay2" data-parent="#itineraryAccordion">
+                            <div class="card-body">
+                                <p>Travel to the famous Darvaza Gas Crater ("Gate of Hell"). This natural gas crater has been burning for decades, especially spectacular at night. Experience camping under the stars in the Karakum Desert with traditional Turkmen hospitality.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="card-header p-0" id="headingDay3">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseDay3" aria-expanded="false" aria-controls="collapseDay3">
+                                    <h4 class="mb-0">Day 3: Return to Ashgabat <i class="fas fa-chevron-down ml-2 chevron-icon"></i></h4>
+                                </button>
+                            </h5>
+                        </div>
+                        <div id="collapseDay3" class="collapse" aria-labelledby="headingDay3" data-parent="#itineraryAccordion">
+                            <div class="card-body">
+                                <p>Return to Ashgabat and visit the Monument to Neutrality and the Turkmenbashi Ruhy Mosque. Explore the white marble buildings of the capital. Depart with unforgettable memories of your Silk Road adventure.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tour-tags">
+                    <span class="tour-tag"><i class="fas fa-map-marker-alt"></i> From Shavat / Khiva</span>
+                    <span class="tour-tag">Darvaza Gas Crater</span>
+                    <span class="tour-tag">Short Breaks (1–3 days)</span>
+                </div>
             </div>
         </div>
-    </section>
-    <%- include('partials/footer'); -%>
+    </div>
+</div>
+<%- include('partials/footer'); -%>

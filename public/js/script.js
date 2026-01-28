@@ -369,3 +369,38 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+// Tour accordion (no Bootstrap)
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.tour-accordion [data-toggle="collapse"]').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('data-target');
+            const target = document.querySelector(targetId);
+            const parentId = this.getAttribute('data-parent');
+            const parent = parentId ? document.querySelector(parentId) : null;
+
+            if (!target) return;
+
+            const isExpanded = this.getAttribute('aria-expanded') === 'true';
+
+            if (parent) {
+                parent.querySelectorAll('.collapse.show').forEach(open => {
+                    if (open !== target) {
+                        open.classList.remove('show');
+                        const trigger = parent.querySelector('[data-target="#' + open.id + '"]');
+                        if (trigger) trigger.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+
+            if (isExpanded) {
+                target.classList.remove('show');
+                this.setAttribute('aria-expanded', 'false');
+            } else {
+                target.classList.add('show');
+                this.setAttribute('aria-expanded', 'true');
+            }
+        });
+    });
+});
