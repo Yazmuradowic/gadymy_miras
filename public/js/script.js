@@ -209,33 +209,50 @@ if (contactForm) {
             showError(name, 'Adyňyzy giriziň');
             isValid = false;
         } else if (name.value.trim().length < 2) {
-            showError(name, 'Name must be at least 2 characters');
+            showError(name, 'Ad azyndan 2 harp bolmaly');
             isValid = false;
         }
 
         // Validate Email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (email.value.trim() === '') {
-            showError(email, 'Please enter your email address');
+            showError(email, 'Email salgyňyzy giriziň');
             isValid = false;
         } else if (!emailRegex.test(email.value)) {
-            showError(email, 'Please enter a valid email address');
+            showError(email, 'Dogry email salgy giriziň');
             isValid = false;
         }
 
         // Validate Message
         if (message.value.trim() === '') {
-            showError(message, 'Please write a message');
+            showError(message, 'Hat ýazyň');
             isValid = false;
         } else if (message.value.trim().length < 10) {
-            showError(message, 'Message must be at least 10 characters');
+            showError(message, 'Hat azyndan 10 harp bolmaly');
             isValid = false;
         }
 
         if (isValid) {
-            // Show success message
-            alert('Thank you! Your message has been sent. We will contact you soon.');
-            contactForm.reset();
+        fetch("http://127.0.0.1:3000/contact", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            name: name.value,
+            email: email.value,
+            message: message.value
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        alert('Sag boluň! Siziň hatyňyz iberildi. Gysga wagtdan soň siz bilen habarlaşarys.');
+        contactForm.reset();
+    })
+    .catch(err => {
+        alert("Ýalňyşlyk boldy, soňrak synap görüň");
+        console.error(err);
+    });
         }
     });
 }

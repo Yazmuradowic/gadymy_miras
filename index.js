@@ -4,6 +4,7 @@ const path = require('path');
 require('dotenv').config({ processEnv: myEnw, path: path.resolve(__dirname, '.env'), override: true });
 const express = require('express');
 const bodyParser = require('body-parser');
+const nodemailer = require('nodemailer');
 const app = express();
 const port = myEnw.PORT || 3000;
 
@@ -79,6 +80,39 @@ app.get('/tour/:id', (req, res) => {
     }
     res.render('tour', { tur: tourResults[0] });
   });
+});
+
+app.post("/contact", (req, res) => {
+  console.log("TEST IBERILDI:");
+  const ady=req.body.name;
+  const pocta=req.body.email;
+  const message=req.body.message;
+
+  const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "donmezow1986@gmail.com",   // siziň emailiňiz
+    pass: "qyupdyltafrfzmhi"       // app password
+  }
+});
+
+const mailOptions = {
+  from: pocta,
+  to: "yazmuradowerkin@gmail.com",
+  subject: ady,
+  text: "From: "+pocta+'\n'+"Subject: "+ady+'\n'+"Teksti: "+message
+};
+
+transporter.sendMail(mailOptions, (error, info) => {
+  if (error) {
+    console.log("Ýalňyşlyk:", error);
+  } else {
+    console.log("Hat üstünlikli ugradyldy:", info.response);
+  }
+});
+
+    // console.log(ady+' '+pocta+' '+message);
+    res.json({ ok: true });
 });
 
 app.get('/admin', (req, res) => {
