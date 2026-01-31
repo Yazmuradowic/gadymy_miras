@@ -84,51 +84,34 @@
                 </div>
 
                 <h5 class="tour-program-title">Tour program</h5>
-
                 <div class="accordion tour-accordion" id="itineraryAccordion">
-                    <div class="card">
-                        <div class="card-header p-0" id="headingDay1">
-                            <h5 class="mb-0">
-                                <button class="btn btn-link" type="button" data-toggle="collapse" data-target="#collapseDay1" aria-expanded="true" aria-controls="collapseDay1">
-                                    <h4 class="mb-0">Day 1: Farap – Merv – Ashgabat <i class="fas fa-chevron-down ml-2 chevron-icon"></i></h4>
-                                </button>
-                            </h5>
-                        </div>  
-                        <div id="collapseDay1" class="collapse show" aria-labelledby="headingDay1" data-parent="#itineraryAccordion">
-                            <div class="card-body">
-                                <p>Your guide will meet you at the Farap border crossing. After customs, you will travel to the ancient city of Merv, a UNESCO World Heritage Site. Explore the ruins, including the Great Kyz Kala, the Mausoleum of Sultan Sanjar, and ancient caravanserais. After lunch, drive to Ashgabat. Check into your hotel and enjoy dinner at a local restaurant.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header p-0" id="headingDay2">
-                            <h5 class="mb-0">
-                                <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseDay2" aria-expanded="false" aria-controls="collapseDay2">
-                                    <h4 class="mb-0">Day 2: Darvaza Gas Crater <i class="fas fa-chevron-down ml-2 chevron-icon"></i></h4>
-                                </button>
-                            </h5>
-                        </div>
-                        <div id="collapseDay2" class="collapse" aria-labelledby="headingDay2" data-parent="#itineraryAccordion">
-                            <div class="card-body">
-                                <p>Travel to the famous Darvaza Gas Crater ("Gate of Hell"). This natural gas crater has been burning for decades, especially spectacular at night. Experience camping under the stars in the Karakum Desert with traditional Turkmen hospitality.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card">
-                        <div class="card-header p-0" id="headingDay3">
-                            <h5 class="mb-0">
-                                <button class="btn btn-link collapsed" type="button" data-toggle="collapse" data-target="#collapseDay3" aria-expanded="false" aria-controls="collapseDay3">
-                                    <h4 class="mb-0">Day 3: Return to Ashgabat <i class="fas fa-chevron-down ml-2 chevron-icon"></i></h4>
-                                </button>
-                            </h5>
-                        </div>
-                        <div id="collapseDay3" class="collapse" aria-labelledby="headingDay3" data-parent="#itineraryAccordion">
-                            <div class="card-body">
-                                <p>Return to Ashgabat and visit the Monument to Neutrality and the Turkmenbashi Ruhy Mosque. Explore the white marble buildings of the capital. Depart with unforgettable memories of your Silk Road adventure.</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+  <% for (let i = 0; i < days.length; i++) { %>
+
+    <div class="card">
+      <div class="card-header p-0" id="headingDay<%= i %>">
+        <button class="btn btn-link collapsed" type="button"
+          data-toggle="collapse"
+          data-target="#collapseDay<%= i %>">
+
+          <h4 class="mb-0">
+            <%= days[i].day_title %>
+            <i class="fas fa-chevron-down ml-2"></i>
+          </h4>
+
+        </button>
+      </div>
+
+      <div id="collapseDay<%= i %>" class="collapse" data-parent="#itineraryAccordion">
+        <div class="card-body">
+          <%= days[i].text %>
+        </div>
+      </div>
+
+    </div>
+
+  <% } %>
+</div>
+
 
                 <div class="tour-tags">
                     <span class="tour-tag"><i class="fas fa-map-marker-alt"></i> From Shavat / Khiva</span>

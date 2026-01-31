@@ -68,19 +68,36 @@ app.get('/tours', (req, res) => {
 
 app.get('/tour/:id', (req, res) => {
   const tourId = req.params.id;
+
+  // 1️⃣ Tur maglumatlary
   db.query('SELECT * FROM tours WHERE id = ?', [tourId], (err, tourResults) => {
     if (err) {
-      console.error('Ошибка при выполнении запроса tours: ' + err.stack);
-      res.status(500).send('Ошибка сервера');
-      return;
+      console.error('Ошибка при выполнении запроса tours:', err);
+      return res.status(500).send('Ошибка сервера');
     }
+
     if (tourResults.length === 0) {
-      res.status(404).send('Тур не найден');
-      return;
+      return res.status(404).send('Тур не найден');
     }
-    res.render('tour', { tur: tourResults[0] });
+
+    // 2️⃣ Günler (days)
+    db.query('SELECT * FROM day WHERE tour_id = ?', [tourId], (err, tourDays) => {
+      if (err) {
+        console.error('Ошибка при выполнении запроса day:', err);
+        return res.status(500).send('Ошибка сервера');
+      }
+console.log("Maglumatlar ejs ugradyldy!")
+      // 3️⃣ Iki massiw bilen render
+      res.render('tour', {
+        tur: tourResults[0], // bir tur
+        days: tourDays       // günleriň massiwi
+      });
+    });
   });
 });
+
+
+
 
 app.post("/contact", (req, res) => {
   console.log("TEST IBERILDI:");
