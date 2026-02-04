@@ -99,37 +99,35 @@ console.log("Maglumatlar ejs ugradyldy!")
 
 
 
-app.post("/contact", (req, res) => {
-  // console.log("TEST IBERILDI:");
-  const ady=req.body.name;
-  const pocta=req.body.email;
-  const message=req.body.message;
-// console.log(ady+' '+pocta+' '+message);
+app.post('/contact', (req, res) => {
+  console.log('Contact request body:', req.body);
+  const ady = req.body.name;
+  const pocta = req.body.email;
+  const message = req.body.message;
+
   const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: "gadymy.miras.travel@gmail.com",   // siziň emailiňiz
-    pass: "ppczzjpndbgxzdwt"       // app password
-  }
-});
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER || 'gadymy.miras.travel@gmail.com',
+      pass: process.env.GMAIL_PASS || 'ppczzjpndbgxzdwt'
+    }
+  });
 
-const mailOptions = {
-  from: pocta,
-  to: "travel@gadymymiras.com",
-  subject: ady,
-  text: "From: "+pocta+'\n'+"Subject: "+ady+'\n'+"Teksti: "+message
-};
+  const mailOptions = {
+    from: pocta,
+    to: process.env.CONTACT_TO || 'travel@gadymymiras.com',
+    subject: ady || 'New contact message',
+    text: `From: ${pocta}\nSubject: ${ady}\nTeksti: ${message}`
+  };
 
-transporter.sendMail(mailOptions, (error, info) => {
-  // if (error) {
-  //   console.log("Ýalňyşlyk:", error);
-  // } else {
-  //   console.log("Hat üstünlikli ugradyldy:", info.response);
-  // }
-});
-
-    // console.log(ady+' '+pocta+' '+message);
-    res.json({ ok: true });
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.error('Mail send error:', error);
+      return res.status(500).json({ ok: false, error: error.message });
+    }
+    console.log('Mail sent:', info && info.response);
+    return res.json({ ok: true });
+  });
 });
 
 app.get('/admin', (req, res) => {

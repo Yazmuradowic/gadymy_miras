@@ -233,6 +233,13 @@ if (contactForm) {
         }
 
         if (isValid) {
+            const submitBtn = contactForm.querySelector('button[type="submit"]');
+            const originalBtnHTML = submitBtn ? submitBtn.innerHTML : null;
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="loader"></span>Iberilýär...';
+            }
+
             fetch('/contact', {
                 method: 'POST',
                 headers: {
@@ -257,6 +264,12 @@ if (contactForm) {
             .catch(err => {
                 alert('Ýalňyşlyk boldy, soňrak synap görüň');
                 console.error(err);
+            })
+            .finally(() => {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    if (originalBtnHTML !== null) submitBtn.innerHTML = originalBtnHTML;
+                }
             });
         }
     });
