@@ -233,26 +233,31 @@ if (contactForm) {
         }
 
         if (isValid) {
-        fetch("http://127.0.0.1:3000/contact", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            name: name.value,
-            email: email.value,
-            message: message.value
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert('Sag boluň! Siziň hatyňyz iberildi. Gysga wagtdan soň siz bilen habarlaşarys.');
-        contactForm.reset();
-    })
-    .catch(err => {
-        alert("Ýalňyşlyk boldy, soňrak synap görüň");
-        console.error(err);
-    });
+            fetch('/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name.value,
+                    email: email.value,
+                    message: message.value
+                })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('Server returned ' + res.status);
+                const ct = res.headers.get('content-type') || '';
+                if (ct.includes('application/json')) return res.json();
+                return res.text().then(() => ({}));
+            })
+            .then(data => {
+                alert('Sag boluň! Siziň hatyňyz iberildi. Gysga wagtdan soň siz bilen habarlaşarys.');
+                contactForm.reset();
+            })
+            .catch(err => {
+                alert('Ýalňyşlyk boldy, soňrak synap görüň');
+                console.error(err);
+            });
         }
     });
 }

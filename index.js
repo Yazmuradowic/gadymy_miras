@@ -100,32 +100,32 @@ console.log("Maglumatlar ejs ugradyldy!")
 
 
 app.post("/contact", (req, res) => {
-  console.log("TEST IBERILDI:");
+  // console.log("TEST IBERILDI:");
   const ady=req.body.name;
   const pocta=req.body.email;
   const message=req.body.message;
-
+// console.log(ady+' '+pocta+' '+message);
   const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: "donmezow1986@gmail.com",   // siziň emailiňiz
-    pass: "qyupdyltafrfzmhi"       // app password
+    user: "gadymy.miras.travel@gmail.com",   // siziň emailiňiz
+    pass: "ppczzjpndbgxzdwt"       // app password
   }
 });
 
 const mailOptions = {
   from: pocta,
-  to: "yazmuradowerkin@gmail.com",
+  to: "travel@gadymymiras.com",
   subject: ady,
   text: "From: "+pocta+'\n'+"Subject: "+ady+'\n'+"Teksti: "+message
 };
 
 transporter.sendMail(mailOptions, (error, info) => {
-  if (error) {
-    console.log("Ýalňyşlyk:", error);
-  } else {
-    console.log("Hat üstünlikli ugradyldy:", info.response);
-  }
+  // if (error) {
+  //   console.log("Ýalňyşlyk:", error);
+  // } else {
+  //   console.log("Hat üstünlikli ugradyldy:", info.response);
+  // }
 });
 
     // console.log(ady+' '+pocta+' '+message);
