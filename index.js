@@ -100,7 +100,7 @@ console.log("Maglumatlar ejs ugradyldy!")
 
 
 app.post('/contact', (req, res) => {
-  console.log('Contact request body:', req.body);
+  // console.log('Contact request body:', req.body);
   const ady = req.body.name;
   const pocta = req.body.email;
   const message = req.body.message;
@@ -114,10 +114,11 @@ app.post('/contact', (req, res) => {
   });
 
   const mailOptions = {
-    from: pocta,
+    from: 'gadymy.miras.travel@gmail.com',  // ← Gmail akkauntyny özüne
     to: process.env.CONTACT_TO || 'travel@gadymymiras.com',
     subject: ady || 'New contact message',
-    text: `From: ${pocta}\nSubject: ${ady}\nTeksti: ${message}`
+    replyTo: pocta,  // ← Ulanyjynyň e-maili bu sazy
+    text: `From: ${pocta}\nName: ${ady}\nMessage: ${message}`
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -125,7 +126,6 @@ app.post('/contact', (req, res) => {
       console.error('Mail send error:', error);
       return res.status(500).json({ ok: false, error: error.message });
     }
-    console.log('Mail sent:', info && info.response);
     return res.json({ ok: true });
   });
 });
