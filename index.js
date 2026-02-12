@@ -86,7 +86,7 @@ app.get('/tour/:id', (req, res) => {
         console.error('Ошибка при выполнении запроса day:', err);
         return res.status(500).send('Ошибка сервера');
       }
-console.log("Maglumatlar ejs ugradyldy!")
+// console.log("Maglumatlar ejs ugradyldy!");
       // 3️⃣ Iki massiw bilen render
       res.render('tour', {
         tur: tourResults[0], // bir tur

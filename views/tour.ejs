@@ -6,22 +6,22 @@
             <span>›</span>
             <a href="/tours">Tours</a>
             <span>›</span>
-            <span><%= typeof tur !== 'undefined' && tur.tour_title ? tur.tour_title : 'Tour' %></span>
+            <span><%= tur.tour_title %></span>
         </nav>
 
         <div class="tour-detail-card">
             <% const bannerImg = (typeof tur !== 'undefined' && tur.tour_picture) ? tur.tour_picture : 'https://tmtourism.com/uploads/tours/45/sT8GFa2PRPhE2TodxmFioJRHaFMD72mbcpwSjBHZ.webp'; %>
             <div class="tour-banner" style="background-image: url('<%= bannerImg %>');" role="img" aria-label="Tour cover"></div>
             <div class="card-body">
-                <h1 class="card-title"><%= typeof tur !== 'undefined' && tur.tour_title ? tur.tour_title : '3-Day Turkmenistan Silk Road Tour: Merv &amp; Darvaza Crater' %></h1>
+                <h1 class="card-title"><%= tur.tour_title %></h1>
                 <div class="short_description">
-                    <p><strong>Route:</strong> <%= typeof tur !== 'undefined' && tur.tour_start ? tur.tour_start : 'Farap — Merv — Ashgabat — Darvaza — Shavat' %></p>
-                    <p>A short journey to the legendary Darvaza Crater with an overnight stay at the fiery abyss, including sunset, sunrise, and return. Explore UNESCO ruins, the marble city of Ashgabat, and camp at the Darvaza Gas Crater.</p>
+                    <p><strong>Route:</strong> <%= tur.tour_start %></p>
+                    <p><%= tur.tour_text %></p>
                 </div>
                 <div class="tour-stats-row">
                     <div class="tour-stat-box">
                         <i class="fas fa-calendar-alt"></i>
-                        <div class="stat-value"><%= typeof tur !== 'undefined' && tur.day ? tur.day : '3' %></div>
+                        <div class="stat-value"><%= tur.day %></div>
                         <div class="stat-label">days</div>
                     </div>
                     <div class="tour-stat-box">
@@ -50,12 +50,15 @@
                         <div id="collapseInclusions" class="collapse show" aria-labelledby="headingInclusions" data-parent="#accordionInclusions">
                             <div class="card-body">
                                 <ul>
-                                    <li>Letter of Invitation (LoI) for Turkmenistan visa and assistance with mandatory registration.</li>
-                                    <li>Accommodation in standard hotel rooms and yurts at Darvaza.</li>
-                                    <li>Private transport and English-speaking guide for the days and routes specified.</li>
-                                    <li>All expenses of your driver and guide (fuel, meals, accommodation).</li>
-                                    <li>Daily breakfasts. Dinner and overnight in a yurt at the Darvaza gas crater.</li>
-                                    <li>Entrance fees and photography permits for museums and attractions.</li>
+                                    <li>Visa support (Letter of Invitation, State Registration, Travel Pass)</li>
+                                    <li>Road transport in private air-conditioned vehicles, regular.</li>
+                                    <li>Accommodation based on 3*Mizan otel or similar.</li>
+                                    <li>Meal: F/B</li>
+                                    <li>Tourist entrance tax at every hotel 2 $</li>
+                                    <li>English-speaking guide-interpreter services.</li>
+                                    <li>Entrance fees to sites mentioned in the program, as per price differentiation</li>
+                                    <li>Bottled water 1,5 ltr per person.</li>
+                                    <li>Porter services</li>
                                 </ul>
                             </div>
                         </div>
@@ -71,12 +74,12 @@
                         <div id="collapseExclusions" class="collapse" aria-labelledby="headingExclusions" data-parent="#accordionInclusions">
                             <div class="card-body">
                                 <ul>
-                                    <li>Visa and other border fees (obtainable at embassy or border).</li>
-                                    <li>International flights and any transport to/from Turkmenistan.</li>
-                                    <li>Meals not in the program (approx. 3–8 USD per meal per person).</li>
-                                    <li>Travel and medical insurance (highly recommended).</li>
-                                    <li>Personal expenses (souvenirs, laundry, minibar) and tips for guides/drivers.</li>
-                                    <li>Drones (not allowed in Turkmenistan).</li>
+                                    <li>Turkmenistan tourist visa from 55 to 100 USD per person (depending on the country of residence), in the endurance to the Country (subject to change)</li>
+                                    <li>Turkmenistan migration tax 12 USD per person, to be paid at entering borders (subject to change)</li>
+                                    <li>Photo/video fees at historical sites and museums</li>
+                                    <li>Tips for local guide(s) and/or driver(s)</li>
+                                    <li>Souvenirs and other personal items</li>
+                                    <li>All other charges and services not mentioned under “Included”</li>
                                 </ul>
                             </div>
                         </div>
