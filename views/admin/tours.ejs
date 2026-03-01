@@ -1,0 +1,117 @@
+<%- include('adminpartials/header'); -%>
+    <main class="admin-content">
+        <section class="admin-section">
+            <div class="admin-section-header" style="margin-bottom:0.8rem;">
+                <h2>Bar bolan turlar</h2>
+            </div>
+
+            <% if (tours && tours.length) { %>
+                <div class="tour-cards admin-tour-cards">
+                    <% tours.forEach(function(tour) { %>
+                        <% const picUrl = tour.tour_picture ? (tour.tour_picture.startsWith('/') ? tour.tour_picture : ('/' + tour.tour_picture)) : null; %>
+                        <div class="tour-card">
+                            <div class="card-image">
+                                <% if (picUrl) { %>
+                                    <img src="<%= picUrl %>" alt="<%= tour.tour_title %>">
+                                <% } else { %>
+                                    <img src="/image/banner/banner-1.jpg" alt="placeholder">
+                                <% } %>
+                                <% if (tour.tour_popularity) { %>
+                                    <div class="popular-badge"><%= tour.tour_popularity %></div>
+                                <% } %>
+                                <% if (tour.tour_region) { %>
+                                    <div class="tour-location-chip"><span><i class="fas fa-map-marker-alt"></i></span> <%= tour.tour_region %></div>
+                                <% } %>
+                            </div>
+                            <div class="card-content">
+                                <h3 class="card-title"><%= tour.tour_title %></h3>
+                                <div class="details" style="margin-bottom:0.75rem;">
+                                    <span class="detail-item"><i class="fas fa-clock"></i> <%= tour.day %> day</span>
+                                </div>
+                                <div class="gallery-actions admin-tour-actions">
+                                    <a href="/tour/<%= tour.id %>" class="btn-outline"><i class="fas fa-eye"></i> Gör</a>
+                                    <a href="/gadymymiras/admin/tours/<%= tour.id %>/edit" class="btn-outline"><i class="fas fa-edit"></i> Üýtget</a>
+                                    <form action="/gadymymiras/admin/tours/<%= tour.id %>/delete" method="post" style="display:inline;" onsubmit="return confirm('Tury hakykatdanam pozmak isleýärsiňizmi?');">
+                                        <button type="submit" class="btn-ghost"><i class="fas fa-trash"></i> Poz</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <p style="padding: 0.5rem 0; text-align:center; color:#e5e7eb;">Entäk hiç hili tur ýok.</p>
+            <% } %>
+
+            <div class="admin-divider"></div>
+
+            <div class="admin-section-header">
+                <h2>Täze tur goşmak</h2>
+            </div>
+
+            <% if (error) { %>
+                <div class="login-error" style="margin-bottom: 1rem;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <form action="/gadymymiras/admin/tours" method="post" class="login-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="tour_title">Ady</label>
+                    <input type="text" id="tour_title" name="tour_title" placeholder="Mysal: Darwaza Tour" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:1; margin-right:0.6rem;">
+                        <label for="tour_region">Region</label>
+                        <input type="text" id="tour_region" name="tour_region" placeholder="Region">
+                    </div>
+                    <div class="form-group" style="width:140px;">
+                        <label for="day">Days</label>
+                        <input type="number" id="day" name="day" value="1" min="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="tour_picture_file">Surat faýly</label>
+                    <input type="file" id="tour_picture_file" name="tour_picture_file" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label for="tour_picture">Surat URL (isleseňiz)</label>
+                    <input type="text" id="tour_picture" name="tour_picture" placeholder="/image/tour/1.jpg">
+                </div>
+                <div class="form-group">
+                    <label for="tour_popularity">Popularity</label>
+                    <input type="text" id="tour_popularity" name="tour_popularity" placeholder="Popular">
+                </div>
+                <div class="form-group">
+                    <label for="tour_text">Tur baradaky tekst</label>
+                    <textarea id="tour_text" name="tour_text" placeholder="Turyň gysga beýany" rows="4"></textarea>
+                </div>
+
+                <div id="days-container">
+                    <h4>Gün Programmasy</h4>
+                    <div class="day-block">
+                        <input type="text" name="day_title[]" placeholder="Day title (e.g. Day 1)">
+                        <textarea name="day_text[]" placeholder="Day text"></textarea>
+                    </div>
+                </div>
+                <div style="display:flex; gap:0.5rem; margin-top:0.6rem;">
+                    <button type="button" id="add-day" class="btn-outline">Add day</button>
+                    <button type="submit" class="btn-outline">Goş</button>
+                </div>
+            </form>
+        </section>
+
+    </main>
+
+    <script>
+    document.getElementById('add-day').addEventListener('click', function(){
+        const container = document.getElementById('days-container');
+        const block = document.createElement('div');
+        block.className = 'day-block';
+        block.innerHTML = '<input type="text" name="day_title[]" placeholder="Day title">\n<textarea name="day_text[]" placeholder="Day text"></textarea>';
+        container.appendChild(block);
+    });
+    </script>
+
+    <%- include('adminpartials/footer'); -%>

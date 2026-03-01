@@ -2,6 +2,14 @@
   "name": "gadymy_miras",
   "version": "1.0.0",
   "description": "",
+  "homepage": "https://github.com/Yazmuradowic/gadymy_miras#readme",
+  "bugs": {
+    "url": "https://github.com/Yazmuradowic/gadymy_miras/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yazmuradowic/gadymy_miras.git"
+  },
   "license": "ISC",
   "author": "erkin",
   "type": "commonjs",
@@ -15,10 +23,11 @@
     "ejs": "^3.1.10",
     "express": "^5.2.1",
     "express-session": "^1.18.2",
+    "multer": "^2.0.2",
     "mysql": "^2.18.1",
     "nodemailer": "^7.0.13"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "nodemon": "^3.1.14"
   }
 }

@@ -1,12 +1,93 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-</head>
-<body>
-    <h1>Hello Admin</h1>
-    <a href="../">Logout</a>
-</body>
-</html>
+<%- include('adminpartials/header'); -%>
+    <main class="admin-content">
+        <section class="admin-cards">
+            <div class="admin-card">
+                <div class="card-icon bg-blue">
+                    <i class="fas fa-feather"></i>
+                </div>
+                <div class="card-body">
+                    <h2>Makalalar</h2>
+                    <p>Saýtdaky makalalary we blog ýazgylaryny dolandyrmak.</p>
+                    <a href="/gadymymiras/admin/posts" class="card-link">
+                        <span>Dolandyr</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <div class="card-icon bg-green">
+                    <i class="fas fa-images"></i>
+                </div>
+                <div class="card-body">
+                    <h2>Galereýa</h2>
+                    <p>Suratlary, şekilleri we görnüşleri goşmak / üýtgetmek.</p>
+                    <a href="/gadymymiras/admin/gallery" class="card-link">
+                        <span>Dolandyr</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <div class="card-icon bg-purple">
+                    <i class="fas fa-video"></i>
+                </div>
+                <div class="card-body">
+                    <h2>Wideolar</h2>
+                    <p>Wideolaryň sanawyny, atlaryny we düşündirişlerini dolandyrmak.</p>
+                    <a href="/gadymymiras/admin/videos" class="card-link">
+                        <span>Dolandyr</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="admin-card">
+                <div class="card-icon bg-orange">
+                    <i class="fas fa-envelope"></i>
+                </div>
+                <div class="card-body">
+                    <h2>Habarlaryňyz</h2>
+                    <p>Ulanyjylaryň iberen habarlaryny we soraglaryny görmek.</p>
+                    <a href="/gadymymiras/admin/messages" class="card-link">
+                        <span>Gör</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <h2>Gysgaça maglumat</h2>
+            </div>
+            <div class="admin-summary">
+                <div class="summary-item">
+                    <span class="summary-label">Soňky täzelenme:</span>
+                    <span class="summary-value">
+                        <%= typeof lastUpdated !=='undefined' ? lastUpdated : '–––' %>
+                    </span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Umumy makala sany:</span>
+                    <span class="summary-value">
+                        <%= typeof stats !=='undefined' && stats.posts ? stats.posts : '–––' %>
+                    </span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Umumy surat sany:</span>
+                    <span class="summary-value">
+                        <%= typeof stats !=='undefined' && stats.gallery ? stats.gallery : '–––' %>
+                    </span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">Okuňmadyk habarlar:</span>
+                    <span class="summary-value highlight">
+                        <%= typeof stats !=='undefined' && stats.unreadMessages ? stats.unreadMessages : '0' %>
+                    </span>
+                </div>
+            </div>
+        </section>
+    </main>
+    <%- include('adminpartials/footer'); -%>

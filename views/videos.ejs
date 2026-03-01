@@ -4,52 +4,21 @@
         <div class="container">
             <h2 class="section-title">Videos</h2>
             <div class="gallery-grid">
-                <!-- <header>
-        <h1>Gadymy Miras Syýahatçylyk Kärhanasy</h1>
-        <p>Türkmenistanyň gadymy mirasyny we gözelliklerini açyň</p>
-         </header> -->
                 <div class="video-gallery">
-                    <!-- Video 1 -->
-                    <div class="video-item" onclick="playVideo(this)">
-                        <div class="video-wrapper">
-                            <img src="image/videoimage/haly.jpg" alt="Ancient Merw" class="poster">
-                            <video controls data-src="video/1.mp4">
-                                <!-- Loads only when clicked -->
-                            </video>
-                            <div class="play-button"></div>
-                        </div>
-                        <div class="video-caption">Ancient Merw Historical Monument</div>
-                    </div>
-
-                    <!-- Video 2 -->
-                    <div class="video-item" onclick="playVideo(this)">
-                        <div class="video-wrapper">
-                            <img src="image/videoimage/darwaza.jpg" alt="Darwaza" class="poster">
-                            <video controls data-src="video/darwaza.mp4"></video>
-                            <div class="play-button"></div>
-                        </div>
-                        <div class="video-caption">Darwaza Gas Crater – "The Gates of Hell"</div>
-                    </div>
-
-                    <!-- Video 3 -->
-                    <div class="video-item" onclick="playVideo(this)">
-                        <div class="video-wrapper">
-                            <img src="image/videoimage/gezelenc.jpg" alt="Ashgabat" class="poster">
-                            <video controls data-src="video/gezelenc.mp4"></video>
-                            <div class="play-button"></div>
-                        </div>
-                        <div class="video-caption">Wonderful Places of Turkmenistan</div>
-                    </div>
-
-                    <!-- Video 4 -->
-                    <div class="video-item" onclick="playVideo(this)">
-                        <div class="video-wrapper">
-                            <img src="posters/koneurgench.jpg" alt="Koneurgench" class="poster">
-                            <video controls data-src="videos/koneurgench.mp4"></video>
-                            <div class="play-button"></div>
-                        </div>
-                        <div class="video-caption">Koneurgench – UNESCO Heritage</div>
-                    </div>
+                    <% if (videos && videos.length) { %>
+                        <% videos.forEach(function(video) { %>
+                            <div class="video-item" onclick="playVideo(this)">
+                                <div class="video-wrapper">
+                                    <img src="<%= video.poster_url %>" alt="<%= video.title || 'Video' %>" class="poster">
+                                    <video controls data-src="<%= video.video_url %>"></video>
+                                    <div class="play-button"></div>
+                                </div>
+                                <div class="video-caption"><%= video.title || 'Video' %></div>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <p style="padding: 1rem 0; text-align:center;">Wideolar entek goşulmady.</p>
+                    <% } %>
                 </div>
     </section>
     <%- include('partials/footer'); -%>

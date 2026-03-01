@@ -1,0 +1,78 @@
+<%- include('adminpartials/header'); -%>
+    <main class="admin-content">
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <h2>Tur üýtgetmek</h2>
+            </div>
+
+            <% if (error) { %>
+                <div class="login-error" style="margin-bottom: 1rem;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <form action="/gadymymiras/admin/tours/<%= tour.id %>/update" method="post" class="login-form" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="tour_title">Ady</label>
+                    <input type="text" id="tour_title" name="tour_title" value="<%= tour.tour_title %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="tour_region">Region</label>
+                    <input type="text" id="tour_region" name="tour_region" value="<%= tour.tour_region %>">
+                </div>
+                <div class="form-group">
+                    <label for="tour_picture_file">Täze surat faýly (isleseňiz)</label>
+                    <input type="file" id="tour_picture_file" name="tour_picture_file" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label for="tour_picture">Surat URL</label>
+                    <input type="text" id="tour_picture" name="tour_picture" value="<%= tour.tour_picture %>">
+                </div>
+                <div class="form-group">
+                    <label for="tour_popularity">Popularity</label>
+                    <input type="text" id="tour_popularity" name="tour_popularity" value="<%= tour.tour_popularity %>">
+                </div>
+                <div class="form-group">
+                    <label for="day">Days (number)</label>
+                    <input type="number" id="day" name="day" value="<%= tour.day %>" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="tour_text">Tur baradaky tekst</label>
+                    <textarea id="tour_text" name="tour_text" rows="4" placeholder="Turyň gysga beýany"><%= tour.tour_text || '' %></textarea>
+                </div>
+
+                <div id="days-container">
+                    <h4>Gün Programmasy</h4>
+                    <% if (days && days.length) { %>
+                        <% days.forEach(function(d){ %>
+                            <div class="day-block">
+                                <input type="text" name="day_title[]" value="<%= d.day_title %>" placeholder="Day title">
+                                <textarea name="day_text[]" placeholder="Day text"><%= d.text %></textarea>
+                            </div>
+                        <% }) %>
+                    <% } else { %>
+                        <div class="day-block">
+                            <input type="text" name="day_title[]" placeholder="Day title">
+                            <textarea name="day_text[]" placeholder="Day text"></textarea>
+                        </div>
+                    <% } %>
+                </div>
+                <button type="button" id="add-day" class="btn-login">Add day</button>
+                <button type="submit" class="btn-login">Ýatda sakla</button>
+            </form>
+        </section>
+
+    </main>
+
+    <script>
+    document.getElementById('add-day').addEventListener('click', function(){
+        const container = document.getElementById('days-container');
+        const block = document.createElement('div');
+        block.className = 'day-block';
+        block.innerHTML = '<input type="text" name="day_title[]" placeholder="Day title">\n<textarea name="day_text[]" placeholder="Day text"></textarea>';
+        container.appendChild(block);
+    });
+    </script>
+
+    <%- include('adminpartials/footer'); -%>

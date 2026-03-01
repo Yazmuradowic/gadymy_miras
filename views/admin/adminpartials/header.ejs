@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Wideolar - Gadymy Miras</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="admin-sidebar">
+            <div class="admin-logo">
+                <a href="/gadymymiras" class="logo-link">
+                    <i class="fas fa-globe"></i>
+                    <span>Gadymy_Miras</span>
+                </a>
+            </div>
+            <nav class="admin-nav">
+                <a href="/gadymymiras" class="nav-item">
+                    <i class="fas fa-home"></i>
+                    <span>Esasy sahypa</span>
+                </a>
+                <a href="/gadymymiras/admin/tours" class="nav-item">
+                    <i class="fas fa-feather"></i>
+                    <span>Turlar</span>
+                </a>
+                <a href="/gadymymiras/admin/gallery" class="nav-item">
+                    <i class="fas fa-images"></i>
+                    <span>Galereýa</span>
+                </a>
+                <a href="/gadymymiras/admin/videos" class="nav-item">
+                    <i class="fas fa-video"></i>
+                    <span>Wideolar</span>
+                </a>
+                <a href="/gadymymiras/admin/messages" class="nav-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>Habarlaryňyz</span>
+                </a>
+            </nav>
+            <div class="admin-sidebar-footer">
+                <a href="/gadymymiras/logout" class="nav-item logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Ulgamdan çykmak</span>
+                </a>
+            </div>
+        </aside>
+
+        <div class="admin-main">
+            <header class="admin-header">
+                <div>
+                    <h1><%= typeof adminTitle !== 'undefined' ? adminTitle : 'Wideolar' %></h1>
+                    <p><%= typeof adminSubtitle !== 'undefined' ? adminSubtitle : 'Saýtdaky wideolary şu ýerden dolandyrmaga bolýar.' %></p>
+                </div>
+                <div class="admin-header-actions">
+                    <a href="/videos" class="btn-outline">
+                        <i class="fas fa-external-link-alt"></i>
+                        Saýtda görmek
+                    </a>
+                </div>
+            </header>
