@@ -705,6 +705,96 @@ body {
     margin-top: 0.75rem;
 }
 
+.messages-list {
+    overflow-x: auto;
+}
+
+.messages-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.messages-table th,
+.messages-table td {
+    padding: 0.6rem 0.75rem;
+    border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.messages-table th {
+    text-align: left;
+    color: #9ca3af;
+    font-weight: 600;
+}
+
+.messages-table tr.unread {
+    background: rgba(56,189,248,0.08);
+}
+
+.messages-table tr.unread:hover {
+    background: rgba(56,189,248,0.14);
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.badge-unread {
+    background: rgba(56,189,248,0.18);
+    color: #e0f2fe;
+}
+
+.badge-read {
+    background: rgba(34,197,94,0.18);
+    color: #bbf7d0;
+}
+
+.message-detail {
+    padding: 0.9rem 1rem;
+    border-radius: 14px;
+    border: 1px solid rgba(148,163,184,0.35);
+    background: rgba(15,23,42,0.85);
+    margin-bottom: 1rem;
+}
+
+.message-detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.6rem;
+}
+
+.message-detail-header h3 {
+    margin: 0;
+}
+
+.message-detail-header .muted {
+    margin: 0.15rem 0 0;
+    font-size: 0.85rem;
+}
+
+.message-detail-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.message-detail-body {
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+    color: #e5e7eb;
+    white-space: pre-wrap;
+}
+
 .day-block input, .day-block textarea {
     width: 100%;
     padding: 0.5rem;

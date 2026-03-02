@@ -36,7 +36,16 @@
                 </a>
                 <a href="/gadymymiras/admin/messages" class="nav-item">
                     <i class="fas fa-envelope"></i>
-                    <span>Habarlaryňyz</span>
+                    <span>
+                        Habarlaryňyz
+                        <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
+                            (<%= unreadMessages %>)
+                        <% } %>
+                    </span>
+                </a>
+                <a href="/gadymymiras/admin/feedback" class="nav-item">
+                    <i class="fas fa-comments"></i>
+                    <span>Kommentler</span>
                 </a>
             </nav>
             <div class="admin-sidebar-footer">

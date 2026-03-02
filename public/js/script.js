@@ -97,7 +97,7 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
 const slides = document.querySelectorAll('.feedback-slide');
 const prevBtn = document.querySelector('.prev-btn');
 const nextBtn = document.querySelector('.next-btn');
-let currentSlide = 1;
+let currentSlide = 0;
 let slideInterval;
 
 // Create dots
@@ -147,7 +147,7 @@ function goToSlide(index) {
 }
 
 function startAutoSlide() {
-    slideInterval = setInterval(nextSlide, 7000); // Change slide every 7 seconds
+    slideInterval = setInterval(nextSlide, 7000); // Her 7 sekuntda bir geçýär
 }
 
 function resetAutoSlide() {

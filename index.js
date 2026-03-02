@@ -225,6 +225,17 @@ app.post('/contact', (req, res) => {
   const pocta = req.body.email;
   const message = req.body.message;
 
+  // Habary bazada saklaýarys (admin üçin)
+  db.query(
+    'INSERT INTO messages (name, email, message, is_read, created_at) VALUES (?, ?, ?, 0, NOW())',
+    [ady, pocta, message],
+    (dbErr) => {
+      if (dbErr) {
+        console.error('Contact message DB insert error:', dbErr);
+      }
+    }
+  );
+
   const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -250,10 +261,227 @@ app.post('/contact', (req, res) => {
   });
 });
 
+// Admin routlary üçin – okuňmadyk habar sanyny ähli şablonlara berjek middleware
+app.use('/gadymymiras/admin', (req, res, next) => {
+  // default baha
+  res.locals.unreadMessages = 0;
+
+  db.query('SELECT COUNT(*) AS unread FROM messages WHERE is_read = 0', (err, rows) => {
+    if (err) {
+      console.error('Unread messages count error:', err);
+      return next();
+    }
+    res.locals.unreadMessages = (rows && rows[0] && rows[0].unread) || 0;
+    next();
+  });
+});
+
+// Admin habarlary – sanaw
+app.get('/gadymymiras/admin/messages', (req, res) => {
+  if (!req.session.adminLoggedIn) {
+    return res.redirect('/gadymymiras/login');
+  }
+
+  db.query(
+    'SELECT id, name, email, message, is_read, created_at FROM messages ORDER BY created_at DESC',
+    (err, rows) => {
+      if (err) {
+        console.error('Admin messages list error:', err);
+        return res.status(500).send('Habarlary okap bolmady');
+      }
+      res.render('admin/messages', {
+        messages: rows,
+        selectedMessage: null
+      });
+    }
+  );
+});
+
+// Admin habary aýratyn görmek – okalan diýip belläp
+app.get('/gadymymiras/admin/messages/:id', (req, res) => {
+  if (!req.session.adminLoggedIn) {
+    return res.redirect('/gadymymiras/login');
+  }
+  const id = req.params.id;
+
+  // okalan diýip belle
+  db.query('UPDATE messages SET is_read = 1 WHERE id = ?', [id], (updErr) => {
+    if (updErr) {
+      console.error('Mark message read error:', updErr);
+    }
+    // ähli habarlary we saýlanan habary alyp görkez
+    db.query(
+      'SELECT id, name, email, message, is_read, created_at FROM messages ORDER BY created_at DESC',
+      (listErr, listRows) => {
+        if (listErr) {
+          console.error('Admin messages list error:', listErr);
+          return res.status(500).send('Habarlary okap bolmady');
+        }
+        db.query(
+          'SELECT id, name, email, message, is_read, created_at FROM messages WHERE id = ?',
+          [id],
+          (oneErr, oneRows) => {
+            if (oneErr) {
+              console.error('Admin message select error:', oneErr);
+              return res.status(500).send('Habar tapylmady');
+            }
+            if (!oneRows || !oneRows.length) {
+              return res.redirect('/gadymymiras/admin/messages');
+            }
+            res.render('admin/messages', {
+              messages: listRows,
+              selectedMessage: oneRows[0]
+            });
+          }
+        );
+      }
+    );
+  });
+});
+
+// Admin habary pozmak
+app.post('/gadymymiras/admin/messages/:id/delete', (req, res) => {
+  if (!req.session.adminLoggedIn) {
+    return res.redirect('/gadymymiras/login');
+  }
+  const id = req.params.id;
+  db.query('DELETE FROM messages WHERE id = ?', [id], (err) => {
+    if (err) {
+      console.error('Admin message delete error:', err);
+      return res.status(500).send('Habary pozup bolmady');
+    }
+    res.redirect('/gadymymiras/admin/messages');
+  });
+});
+
+// Admin kommentler (feedback) – sanaw
+app.get('/gadymymiras/admin/feedback', (req, res) => {
+  if (!req.session.adminLoggedIn) {
+    return res.redirect('/gadymymiras/login');
+  }
+  db.query('SELECT id, name, text FROM feedback ORDER BY id DESC', (err, rows) => {
+    if (err) {
+      console.error('Admin feedback list error:', err);
+      return res.status(500).send('Kommentleri okap bolmady');
+    }
+    res.render('admin/feedback', {
+      feedback: rows,
+      error: null,
+      adminTitle: 'Kommentler',
+      adminSubtitle: 'Saýtdaky Comments bölümindäki kommentleri dolandyrmak.'
+    });
+  });
+});
+
+// Admin komment – täze goşmak
+app.post('/gadymymiras/admin/feedback', (req, res) => {
+  if (!req.session.adminLoggedIn) {
+    return res.redirect('/gadymymiras/login');
+  }
+  const name = (req.body.name || '').trim();
+  const text = (req.body.text || '').trim();
+  if (!name || !text) {
+    return db.query('SELECT id, name, text FROM feedback ORDER BY id DESC', (err, rows) => {
+      if (err) {
+        console.error('Admin feedback list error:', err);
+        return res.status(500).send('Kommentleri okap bolmady');
+      }
+      res.render('admin/feedback', {
+        feedback: rows,
+        error: 'Ady we tekst hökman girizilmeli.',
+        adminTitle: 'Kommentler',
+        adminSubtitle: 'Saýtdaky Comments bölümindäki kommentleri dolandyrmak.'
+      });
+    });
+  }
+  db.query('INSERT INTO feedback (name, text) VALUES (?, ?)', [name, text], (err) => {
+    if (err) {
+      console.error('Admin feedback insert error:', err);
+      return res.status(500).send('Komment goşulanda ýalňyşlyk boldy');
+    }
+    res.redirect('/gadymymiras/admin/feedback');
+  });
+});
+
+// Admin komment – üýtgetmek formasy
+app.get('/gadymymiras/admin/feedback/:id/edit', (req, res) => {
+  if (!req.session.adminLoggedIn) {
+    return res.redirect('/gadymymiras/login');
+  }
+  const id = req.params.id;
+  db.query('SELECT id, name, text FROM feedback WHERE id = ?', [id], (err, rows) => {
+    if (err) {
+      console.error('Admin feedback select error:', err);
+      return res.status(500).send('Komment tapylmady');
+    }
+    if (!rows || !rows.length) {
+      return res.redirect('/gadymymiras/admin/feedback');
+    }
+    res.render('admin/feedback_edit', {
+      item: rows[0],
+      error: null,
+      adminTitle: 'Komment üýtgetmek',
+      adminSubtitle: 'Komment maglumatlaryny üýtgetmek.'
+    });
+  });
+});
+
+// Admin komment – üýtgetmek (POST)
+app.post('/gadymymiras/admin/feedback/:id/update', (req, res) => {
+  if (!req.session.adminLoggedIn) {
+    return res.redirect('/gadymymiras/login');
+  }
+  const id = req.params.id;
+  const name = (req.body.name || '').trim();
+  const text = (req.body.text || '').trim();
+  if (!name || !text) {
+    return db.query('SELECT id, name, text FROM feedback WHERE id = ?', [id], (err, rows) => {
+      if (err || !rows || !rows.length) {
+        return res.redirect('/gadymymiras/admin/feedback');
+      }
+      res.render('admin/feedback_edit', {
+        item: rows[0],
+        error: 'Ady we tekst hökman girizilmeli.',
+        adminTitle: 'Komment üýtgetmek',
+        adminSubtitle: 'Komment maglumatlaryny üýtgetmek.'
+      });
+    });
+  }
+  db.query('UPDATE feedback SET name = ?, text = ? WHERE id = ?', [name, text, id], (err) => {
+    if (err) {
+      console.error('Admin feedback update error:', err);
+      return res.status(500).send('Komment üýtgedilende ýalňyşlyk boldy');
+    }
+    res.redirect('/gadymymiras/admin/feedback');
+  });
+});
+
+// Admin komment – pozmak
+app.post('/gadymymiras/admin/feedback/:id/delete', (req, res) => {
+  if (!req.session.adminLoggedIn) {
+    return res.redirect('/gadymymiras/login');
+  }
+  const id = req.params.id;
+  db.query('DELETE FROM feedback WHERE id = ?', [id], (err) => {
+    if (err) {
+      console.error('Admin feedback delete error:', err);
+      return res.status(500).send('Kommenti pozup bolmady');
+    }
+    res.redirect('/gadymymiras/admin/feedback');
+  });
+});
+
 // /gadymymiras – giriş edilmedik: login; giriş edilen: admin panel
 app.get('/gadymymiras', (req, res) => {
   if (req.session.adminLoggedIn) {
-    return res.render('admin/index');
+    // admin baş sahypasy üçin gysga statistikalar (häzirlikçe diňe okuňmadyk habar sany)
+    db.query('SELECT COUNT(*) AS unread FROM messages WHERE is_read = 0', (err, rows) => {
+      const stats = {
+        unreadMessages: (!err && rows && rows[0] && rows[0].unread) ? rows[0].unread : 0
+      };
+      return res.render('admin/index', { stats });
+    });
+    return;
   }
   res.render('admin/login');
 });

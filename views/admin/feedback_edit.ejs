@@ -1,0 +1,28 @@
+<%- include('adminpartials/header'); -%>
+    <main class="admin-content">
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <h2>Komment üýtgetmek</h2>
+            </div>
+
+            <% if (error) { %>
+                <div class="login-error" style="margin-bottom: 1rem;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <form action="/gadymymiras/admin/feedback/<%= item.id %>/update" method="post" class="login-form">
+                <div class="form-group">
+                    <label for="name">Ady</label>
+                    <input type="text" id="name" name="name" value="<%= item.name %>" required>
+                </div>
+                <div class="form-group">
+                    <label for="text">Tekst</label>
+                    <textarea id="text" name="text" rows="4" required><%= item.text || '' %></textarea>
+                </div>
+                <button type="submit" class="btn-outline">Ýatda sakla</button>
+            </form>
+        </section>
+    </main>
+    <%- include('adminpartials/footer'); -%>

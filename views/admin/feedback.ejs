@@ -1,0 +1,72 @@
+<%- include('adminpartials/header'); -%>
+    <main class="admin-content">
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <h2>Bar bolan kommentler</h2>
+            </div>
+
+            <% if (error) { %>
+                <div class="login-error" style="margin-bottom: 1rem;">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <% if (feedback && feedback.length) { %>
+                <div class="messages-list">
+                    <table class="messages-table">
+                        <thead>
+                            <tr>
+                                <th>Ady</th>
+                                <th>Tekst</th>
+                                <th>Hereket</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% feedback.forEach(function(item) { %>
+                                <tr>
+                                    <td><%= item.name %></td>
+                                    <td><%= (item.text && item.text.length > 80) ? item.text.substring(0, 80) + '…' : (item.text || '') %></td>
+                                    <td>
+                                        <a href="/gadymymiras/admin/feedback/<%= item.id %>/edit" class="btn-outline">
+                                            <i class="fas fa-edit"></i> Üýtget
+                                        </a>
+                                        <form action="/gadymymiras/admin/feedback/<%= item.id %>/delete" method="post"
+                                              style="display:inline;"
+                                              onsubmit="return confirm('Bu kommenti hakykatdanam pozmak isleýärsiňizmi?');">
+                                            <button type="submit" class="btn-ghost">
+                                                <i class="fas fa-trash"></i> Poz
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <p style="padding: 0.5rem 0; text-align:center; color:#e5e7eb;">
+                    Entäk hiç hili komment ýok.
+                </p>
+            <% } %>
+
+            <div class="admin-divider"></div>
+
+            <div class="admin-section-header">
+                <h2>Täze komment goşmak</h2>
+            </div>
+
+            <form action="/gadymymiras/admin/feedback" method="post" class="login-form">
+                <div class="form-group">
+                    <label for="name">Ady</label>
+                    <input type="text" id="name" name="name" placeholder="Mysal: Ayna M." required>
+                </div>
+                <div class="form-group">
+                    <label for="text">Tekst</label>
+                    <textarea id="text" name="text" rows="4" placeholder="Komment teksti" required></textarea>
+                </div>
+                <button type="submit" class="btn-outline">Goş</button>
+            </form>
+        </section>
+    </main>
+    <%- include('adminpartials/footer'); -%>

@@ -1,0 +1,88 @@
+<%- include('adminpartials/header'); -%>
+    <main class="admin-content">
+        <section class="admin-section">
+            <div class="admin-section-header">
+                <h2>Habarlaryňyz</h2>
+            </div>
+
+            <% if (selectedMessage) { %>
+                <div class="message-detail">
+                    <div class="message-detail-header">
+                        <div>
+                            <h3><%= selectedMessage.name %></h3>
+                            <p class="muted"><i class="fas fa-envelope"></i> <%= selectedMessage.email %></p>
+                        </div>
+                        <div class="message-detail-meta">
+                            <span class="muted">
+                                <i class="fas fa-clock"></i>
+                                <%= selectedMessage.created_at ? selectedMessage.created_at.toLocaleString() : '' %>
+                            </span>
+                            <form action="/gadymymiras/admin/messages/<%= selectedMessage.id %>/delete" method="post"
+                                  onsubmit="return confirm('Bu habary hakykatdanam pozmak isleýärsiňizmi?');">
+                                <button type="submit" class="btn-ghost">
+                                    <i class="fas fa-trash"></i> Poz
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="message-detail-body">
+                        <p><%= selectedMessage.message %></p>
+                    </div>
+                </div>
+
+                <div class="admin-divider"></div>
+            <% } %>
+
+            <% if (messages && messages.length) { %>
+                <div class="messages-list">
+                    <table class="messages-table">
+                        <thead>
+                            <tr>
+                                <th>Ady</th>
+                                <th>Email</th>
+                                <th>Gelen wagty</th>
+                                <th>Status</th>
+                                <th>Hereket</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% messages.forEach(function(msg) { %>
+                                <tr class="<%= msg.is_read ? '' : 'unread' %>">
+                                    <td><%= msg.name %></td>
+                                    <td><%= msg.email %></td>
+                                    <td>
+                                        <%= msg.created_at ? msg.created_at.toLocaleString() : '' %>
+                                    </td>
+                                    <td>
+                                        <% if (msg.is_read) { %>
+                                            <span class="badge badge-read">Okalan</span>
+                                        <% } else { %>
+                                            <span class="badge badge-unread">Täze</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <a href="/gadymymiras/admin/messages/<%= msg.id %>" class="btn-outline">
+                                            <i class="fas fa-eye"></i> Gör
+                                        </a>
+                                        <form action="/gadymymiras/admin/messages/<%= msg.id %>/delete" method="post"
+                                              style="display:inline;"
+                                              onsubmit="return confirm('Bu habary hakykatdanam pozmak isleýärsiňizmi?');">
+                                            <button type="submit" class="btn-ghost">
+                                                <i class="fas fa-trash"></i> Poz
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } else { %>
+                <p style="padding: 0.5rem 0; text-align:center; color:#e5e7eb;">
+                    Entäk hiç hili habar ýok.
+                </p>
+            <% } %>
+        </section>
+    </main>
+    <%- include('adminpartials/footer'); -%>
+
