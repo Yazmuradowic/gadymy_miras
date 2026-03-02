@@ -805,6 +805,63 @@ body {
     margin-bottom: 0.5rem;
 }
 
+/* Upload progress (admin video upload) */
+.upload-progress {
+    margin-top: 0.9rem;
+    padding: 0.85rem 0.9rem;
+    border-radius: 14px;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    background: rgba(15, 23, 42, 0.78);
+}
+
+.upload-progress__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.55rem;
+}
+
+.upload-progress__label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #e5e7eb;
+}
+
+.upload-progress__percent {
+    font-size: 0.9rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    color: #38bdf8;
+}
+
+.upload-progress__bar {
+    height: 10px;
+    width: 100%;
+    border-radius: 999px;
+    background: rgba(148, 163, 184, 0.18);
+    overflow: hidden;
+}
+
+.upload-progress__bar-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #38bdf8, #22c55e);
+    transition: width 0.12s linear;
+}
+
+.upload-progress__error {
+    margin-top: 0.65rem;
+    padding: 0.55rem 0.7rem;
+    border-radius: 12px;
+    background: rgba(127, 29, 29, 0.55);
+    border: 1px solid rgba(248, 113, 113, 0.65);
+    color: #fecaca;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
 @media (max-width: 1024px) {
     .gallery-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

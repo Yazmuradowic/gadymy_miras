@@ -528,7 +528,10 @@ app.post('/gadymymiras/admin/videos', videoUpload.fields([
   { name: 'poster_file', maxCount: 1 },
   { name: 'video_file', maxCount: 1 }
 ]), (req, res) => {
+  const wantsJson = !!(req.xhr || ((req.headers.accept || '').includes('application/json')));
+
   if (!req.session.adminLoggedIn) {
+    if (wantsJson) return res.status(401).json({ ok: false, error: 'Login gerek.' });
     return res.redirect('/gadymymiras/login');
   }
 
@@ -538,6 +541,9 @@ app.post('/gadymymiras/admin/videos', videoUpload.fields([
   const videoFile = req.files && req.files.video_file && req.files.video_file[0];
 
   if (!title || !posterFile || !videoFile) {
+    if (wantsJson) {
+      return res.status(400).json({ ok: false, error: 'Ady, poster faýly we wideo faýly hökman saýlamaly.' });
+    }
     return db.query('SELECT id, title, video_url, poster_url FROM videos ORDER BY id DESC', (err, videoResults) => {
       if (err) {
         console.error('Admin videos query error:', err);
@@ -559,8 +565,10 @@ app.post('/gadymymiras/admin/videos', videoUpload.fields([
     (err) => {
       if (err) {
         console.error('Admin videos insert error:', err);
+        if (wantsJson) return res.status(500).json({ ok: false, error: 'Wideo goşulanda ýalňyşlyk boldy' });
         return res.status(500).send('Wideo goşulanda ýalňyşlyk boldy');
       }
+      if (wantsJson) return res.json({ ok: true, redirect: '/gadymymiras/admin/videos' });
       res.redirect('/gadymymiras/admin/videos');
     }
   );
