@@ -31,20 +31,22 @@
                         <div class="location"><%= tours[i].tour_start %></div>
                         <div class="details">
                             <span class="detail-item"><i class="fas fa-clock"></i> <%= tours[i].day %> day</span>
-                            <!-- <span class="detail-item">Kiçi topar</span> -->
-                            <span class="detail-item"><i class="fas fa-users"></i> Small group tour</span>
+                            <% if (tours[i].tour_group_label && String(tours[i].tour_group_label).trim()) { %>
+                            <span class="detail-item"><i class="fas fa-users"></i> <%= String(tours[i].tour_group_label).trim() %></span>
+                            <% } %>
                         </div>
                         <div class="price-info">
                             <!-- <span class="duration">Indiki ugur: 03.03.2026</span> -->
-                            <div class="group-price">
+                            <!-- <div class="group-price">
                                 <span><i class="fas fa-user-alt fa-xs mr-1"></i> 2+ : <strong>$485</strong></span>
                                 <span><i class="fas fa-users fa-xs mr-1"></i> 4+ : <strong>$265</strong></span>
-                            </div>
+                            </div> -->
                         </div>
                         <a href="/tour/<%= tours[i].id %>" class="read-more">READ MORE</a>
                     </div>
                 </div>
                 <% } %>
         </div>
+        <%- include('partials/pagination'); -%>
     </section>
     <%- include('partials/footer'); -%>

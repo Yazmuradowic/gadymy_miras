@@ -10,6 +10,7 @@ const session = require('express-session');
 const nodemailer = require('nodemailer');
 const app = express();
 const port = myEnw.PORT || 3000;
+const GALLERY_VIDEOS_PAGE_SIZE = 15;
 
 // Настройка EJS как шаблонизатора
 app.set('view engine', 'ejs');
@@ -154,35 +155,97 @@ app.get('/contact', (req, res) => {
   res.render('contact');
 });
 
-// Public gallery – suratlar bazadan (id, gallery_url)
+// Public gallery – suratlar bazadan (id, gallery_url), 15 sähetde
 app.get('/gallery', (req, res) => {
-  db.query('SELECT id, gallery_url FROM gallery ORDER BY id DESC', (err, galleryResults) => {
-    if (err) {
-      console.error('Gallery query error:', err);
+  const requestedPage = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const pageSize = GALLERY_VIDEOS_PAGE_SIZE;
+
+  db.query('SELECT COUNT(*) AS c FROM gallery', (cerr, countRows) => {
+    if (cerr) {
+      console.error('Gallery count error:', cerr);
       return res.status(500).send('Galereýa üçin maglumat okalmady');
     }
-    res.render('gallery', { photos: galleryResults });
+    const total = Number(countRows[0].c) || 0;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const page = Math.min(requestedPage, totalPages);
+    const offset = (page - 1) * pageSize;
+
+    db.query(
+      'SELECT id, gallery_url FROM gallery ORDER BY id DESC LIMIT ? OFFSET ?',
+      [pageSize, offset],
+      (err, galleryResults) => {
+        if (err) {
+          console.error('Gallery query error:', err);
+          return res.status(500).send('Galereýa üçin maglumat okalmady');
+        }
+        res.render('gallery', {
+          photos: galleryResults,
+          pagination: { page, totalPages, total, pageSize, baseUrl: '/gallery' }
+        });
+      }
+    );
   });
 });
-// Public videos – wideolar bazadan
+// Public videos – wideolar bazadan, 15 sähetde
 app.get('/videos', (req, res) => {
-  db.query('SELECT id, title, video_url, poster_url FROM videos ORDER BY id DESC', (err, videoResults) => {
-    if (err) {
-      console.error('Videos query error:', err);
+  const requestedPage = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const pageSize = GALLERY_VIDEOS_PAGE_SIZE;
+
+  db.query('SELECT COUNT(*) AS c FROM videos', (cerr, countRows) => {
+    if (cerr) {
+      console.error('Videos count error:', cerr);
       return res.status(500).send('Wideolar üçin maglumat okalmady');
     }
-    res.render('videos', { videos: videoResults });
+    const total = Number(countRows[0].c) || 0;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const page = Math.min(requestedPage, totalPages);
+    const offset = (page - 1) * pageSize;
+
+    db.query(
+      'SELECT id, title, video_url, poster_url FROM videos ORDER BY id DESC LIMIT ? OFFSET ?',
+      [pageSize, offset],
+      (err, videoResults) => {
+        if (err) {
+          console.error('Videos query error:', err);
+          return res.status(500).send('Wideolar üçin maglumat okalmady');
+        }
+        res.render('videos', {
+          videos: videoResults,
+          pagination: { page, totalPages, total, pageSize, baseUrl: '/videos' }
+        });
+      }
+    );
   });
 });
 
 app.get('/tours', (req, res) => {
-  db.query('SELECT * FROM tours', (err, toursResults) => {
-    if (err) {
-      console.error('Ошибка при выполнении запроса tours: ' + err.stack);
-      res.status(500).send('Ошибка сервера');
-      return;
+  const requestedPage = Math.max(1, parseInt(req.query.page, 10) || 1);
+  const pageSize = GALLERY_VIDEOS_PAGE_SIZE;
+
+  db.query('SELECT COUNT(*) AS c FROM tours', (cerr, countRows) => {
+    if (cerr) {
+      console.error('Tours count error:', cerr);
+      return res.status(500).send('Turlar üçin maglumat okalmady');
     }
-    res.render('tours', { tours: toursResults });
+    const total = Number(countRows[0].c) || 0;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+    const page = Math.min(requestedPage, totalPages);
+    const offset = (page - 1) * pageSize;
+
+    db.query(
+      'SELECT * FROM tours ORDER BY id DESC LIMIT ? OFFSET ?',
+      [pageSize, offset],
+      (err, toursResults) => {
+        if (err) {
+          console.error('Tours query error:', err);
+          return res.status(500).send('Turlar üçin maglumat okalmady');
+        }
+        res.render('tours', {
+          tours: toursResults,
+          pagination: { page, totalPages, total, pageSize, baseUrl: '/tours' }
+        });
+      }
+    );
   });
 });
 
@@ -856,10 +919,17 @@ app.get('/admin', (req, res) => {
   res.status(404).send('Not Found');
 });
 
-// Запуск сервера
-app.listen(port, () => {
-  console.log(`Сервер запущен на http://localhost:${port}`);
-});
+// Запуск сервера (DB taýýar bolandan soň)
+Promise.resolve(db.ready)
+  .then(() => {
+    app.listen(port, () => {
+      console.log(`Сервер запущен на http://localhost:${port}`);
+    });
+  })
+  .catch((err) => {
+    console.error('DB init/migration failed:', err);
+    process.exit(1);
+  });
 
 // Admin tours – list and add
 app.get('/gadymymiras/admin/tours', (req, res) => {
@@ -898,6 +968,7 @@ app.post('/gadymymiras/admin/tours', tourUpload.single('tour_picture_file'), (re
   const popularity = (req.body.tour_popularity || '').trim();
   const dayCount = parseInt(req.body.day || '0', 10) || 0;
   const text = (req.body.tour_text || '').trim();
+  const tourGroupLabel = (req.body.tour_group_label || '').trim();
 
   // Eger faýldan surat goýlan bolsa – ony ulanylýar
   if (req.file && req.file.filename) {
@@ -909,8 +980,8 @@ app.post('/gadymymiras/admin/tours', tourUpload.single('tour_picture_file'), (re
     return res.redirect('/gadymymiras/admin/tours');
   }
 
-  db.query('INSERT INTO tours (tour_title, tour_region, tour_picture, tour_popularity, day, tour_text) VALUES (?, ?, ?, ?, ?, ?)',
-    [title, region, picture, popularity, dayCount, text], (err, result) => {
+  db.query('INSERT INTO tours (tour_title, tour_region, tour_picture, tour_popularity, day, tour_text, tour_group_label) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [title, region, picture, popularity, dayCount, text, tourGroupLabel || null], (err, result) => {
       if (err) {
         console.error('Admin tours insert error:', err);
         return res.status(500).send('Tur goşulanda ýalňyşlyk boldy');
@@ -988,6 +1059,7 @@ app.post('/gadymymiras/admin/tours/:id/update', tourUpload.single('tour_picture_
   const popularity = (req.body.tour_popularity || '').trim();
   const dayCount = parseInt(req.body.day || '0', 10) || 0;
   const text = (req.body.tour_text || '').trim();
+  const tourGroupLabel = (req.body.tour_group_label || '').trim();
 
   // Eger täze faýl goýlan bolsa – öňküsiniň ýerine şony ýazýarys
   if (req.file && req.file.filename) {
@@ -999,8 +1071,8 @@ app.post('/gadymymiras/admin/tours/:id/update', tourUpload.single('tour_picture_
     return res.redirect('/gadymymiras/admin/tours');
   }
 
-  db.query('UPDATE tours SET tour_title = ?, tour_region = ?, tour_picture = ?, tour_popularity = ?, day = ?, tour_text = ? WHERE id = ?',
-    [title, region, picture, popularity, dayCount, text, id], (err) => {
+  db.query('UPDATE tours SET tour_title = ?, tour_region = ?, tour_picture = ?, tour_popularity = ?, day = ?, tour_text = ?, tour_group_label = ? WHERE id = ?',
+    [title, region, picture, popularity, dayCount, text, tourGroupLabel || null, id], (err) => {
       if (err) {
         console.error('Admin tours update error:', err);
         return res.status(500).send('Tur üýtgedilende ýalňyşlyk boldy');

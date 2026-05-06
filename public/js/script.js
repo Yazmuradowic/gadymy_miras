@@ -258,11 +258,11 @@ if (contactForm) {
                 return res.text().then(() => ({}));
             })
             .then(data => {
-                alert('Sag boluň! Siziň hatyňyz iberildi. Gysga wagtdan soň siz bilen habarlaşarys.');
+                alert('Thank you! Your message has been sent. We will contact you shortly.');
                 contactForm.reset();
             })
             .catch(err => {
-                alert('Ýalňyşlyk boldy, soňrak synap görüň');
+                alert('An error occurred, please try again later.');
                 console.error(err);
             })
             .finally(() => {

@@ -1,0 +1,50 @@
+<% const pg = typeof pagination !== 'undefined' ? pagination : null; %>
+<% if (pg && pg.totalPages > 1) { %>
+<%
+    const page = Number(pg.page) || 1;
+    const totalPages = Number(pg.totalPages) || 1;
+    const baseUrl = pg.baseUrl || '';
+
+    // Build a compact page list: 1 ... (page-2,page-1,page,page+1,page+2) ... last
+    const pages = [];
+    const add = (p) => { if (!pages.includes(p)) pages.push(p); };
+
+    add(1);
+    for (let p = page - 2; p <= page + 2; p++) {
+        if (p >= 1 && p <= totalPages) add(p);
+    }
+    add(totalPages);
+
+    pages.sort((a, b) => a - b);
+
+    const items = [];
+    let prev = null;
+    pages.forEach((p) => {
+        if (prev !== null && p - prev > 1) items.push(null); // gap => ellipsis
+        items.push(p);
+        prev = p;
+    });
+%>
+
+<nav class="pagination" aria-label="Sahypalar">
+    <% if (page > 1) { %>
+        <a href="<%= baseUrl %>?page=<%= page - 1 %>" class="pagination__link">Öňki</a>
+    <% } %>
+
+    <div class="pagination__pages" aria-label="Sahypa nomerleri">
+        <% items.forEach((p) => { %>
+            <% if (p === null) { %>
+                <span class="pagination__dots" aria-hidden="true">…</span>
+            <% } else if (p === page) { %>
+                <span class="pagination__current" aria-current="page"><%= p %></span>
+            <% } else { %>
+                <a href="<%= baseUrl %>?page=<%= p %>" class="pagination__link pagination__link--num"><%= p %></a>
+            <% } %>
+        <% }) %>
+    </div>
+
+    <% if (page < totalPages) { %>
+        <a href="<%= baseUrl %>?page=<%= page + 1 %>" class="pagination__link">Indiki</a>
+    <% } %>
+</nav>
+<% } %>
