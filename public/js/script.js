@@ -237,7 +237,7 @@ if (contactForm) {
             const originalBtnHTML = submitBtn ? submitBtn.innerHTML : null;
             if (submitBtn) {
                 submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="loader"></span>Iberilýär...';
+                submitBtn.innerHTML = '<span class="loader"></span>Sending...';
             }
 
             fetch('/contact', {

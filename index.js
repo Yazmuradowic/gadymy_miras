@@ -7,7 +7,6 @@ require('dotenv').config({ processEnv: myEnw, path: path.resolve(__dirname, '.en
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
-const nodemailer = require('nodemailer');
 const app = express();
 const port = myEnw.PORT || 3000;
 const GALLERY_VIDEOS_PAGE_SIZE = 15;
@@ -288,40 +287,19 @@ app.post('/contact', (req, res) => {
   const pocta = req.body.email;
   const message = req.body.message;
 
-  // Habary bazada saklaýarys (admin üçin)
+  // Habary bazada saklaýarys (admin üçin).
   db.query(
     'INSERT INTO messages (name, email, message, is_read, created_at) VALUES (?, ?, ?, 0, NOW())',
     [ady, pocta, message],
     (dbErr) => {
       if (dbErr) {
         console.error('Contact message DB insert error:', dbErr);
+        return res.status(500).json({ ok: false, error: 'DB_ERROR' });
       }
+
+      return res.json({ ok: true });
     }
   );
-
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.GMAIL_USER || 'gadymy.miras.travel@gmail.com',
-      pass: process.env.GMAIL_PASS || 'ppczzjpndbgxzdwt'
-    }
-  });
-
-  const mailOptions = {
-    from: 'gadymy.miras.travel@gmail.com',  // ← Gmail akkauntyny özüne
-    to: process.env.CONTACT_TO || 'travel@gadymymiras.com',
-    subject: ady || 'New contact message',
-    replyTo: pocta,  // ← Ulanyjynyň e-maili bu sazy
-    text: `From: ${pocta}\nName: ${ady}\nMessage: ${message}`
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error('Mail send error:', error);
-      return res.status(500).json({ ok: false, error: error.message });
-    }
-    return res.json({ ok: true });
-  });
 });
 
 // Admin routlary üçin – okuňmadyk habar sanyny ähli şablonlara berjek middleware
