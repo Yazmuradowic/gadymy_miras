@@ -32,6 +32,7 @@
                                     <a href="/tour/<%= tour.id %>" class="btn-outline"><i class="fas fa-eye"></i> Gör</a>
                                     <a href="/gadymymiras/admin/tours/<%= tour.id %>/edit" class="btn-outline"><i class="fas fa-edit"></i> Üýtget</a>
                                     <form action="/gadymymiras/admin/tours/<%= tour.id %>/delete" method="post" style="display:inline;" onsubmit="return confirm('Tury hakykatdanam pozmak isleýärsiňizmi?');">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                         <button type="submit" class="btn-ghost"><i class="fas fa-trash"></i> Poz</button>
                                     </form>
                                 </div>
@@ -57,6 +58,7 @@
             <% } %>
 
             <form action="/gadymymiras/admin/tours" method="post" class="login-form" enctype="multipart/form-data">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <div class="form-group">
                     <label for="tour_title">Ady</label>
                     <input type="text" id="tour_title" name="tour_title" placeholder="Mysal: Darwaza Tour" required>

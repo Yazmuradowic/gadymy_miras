@@ -1,7 +1,8 @@
 const myEnw={};
 const path = require('path');
 require('dotenv').config({ processEnv: myEnw, path: path.resolve(__dirname, '.env'), override: true  });
-const mysql = require('mysql');
+const mysql = require('mysql2');
+const { hashPassword, isHashed } = require('./password');
 const connection = mysql.createConnection({
   host: myEnw.DB_HOST,
   user: myEnw.DB_USER,
@@ -26,7 +27,52 @@ connection.ready = new Promise((resolve, reject) => {
           console.error('tours.tour_group_label migration:', alterErr.message);
           return reject(alterErr);
         }
-        return resolve();
+
+        // parol sütünini uzaltmak (öňki varchar(25) hash üçin gysga)
+        connection.query(
+          'ALTER TABLE admin MODIFY COLUMN parol VARCHAR(255) NOT NULL',
+          (widenErr) => {
+            if (widenErr) {
+              console.error('admin.parol widen migration:', widenErr.message);
+              return reject(widenErr);
+            }
+
+            // açyk tekst parollary hash edip goýmak (yzygiderli howpsuzlyk üçin)
+            connection.query('SELECT id, parol FROM admin', (selErr, rows) => {
+              if (selErr) {
+                console.error('admin password migration select:', selErr.message);
+                return reject(selErr);
+              }
+
+              const plaintextRows = (rows || []).filter((row) => !isHashed(row.parol));
+              if (!plaintextRows.length) {
+                return resolve();
+              }
+
+              let remaining = plaintextRows.length;
+              let migrationFailed = false;
+              plaintextRows.forEach((row) => {
+                const hashed = hashPassword(row.parol);
+                connection.query(
+                  'UPDATE admin SET parol = ? WHERE id = ?',
+                  [hashed, row.id],
+                  (updErr) => {
+                    if (updErr && !migrationFailed) {
+                      migrationFailed = true;
+                      console.error('admin password migration update:', updErr.message);
+                      return reject(updErr);
+                    }
+                    remaining -= 1;
+                    if (remaining === 0 && !migrationFailed) {
+                      console.log(`Admin parollary hash edildi (${plaintextRows.length}).`);
+                      resolve();
+                    }
+                  }
+                );
+              });
+            });
+          }
+        );
       }
     );
   });

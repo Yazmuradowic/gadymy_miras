@@ -13,6 +13,7 @@
             <% } %>
 
             <form action="/gadymymiras/admin/feedback/<%= item.id %>/update" method="post" class="login-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <div class="form-group">
                     <label for="name">Ady</label>
                     <input type="text" id="name" name="name" value="<%= item.name %>" required>

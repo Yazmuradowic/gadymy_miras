@@ -38,9 +38,7 @@
                     <i class="fas fa-envelope"></i>
                     <span>
                         Habarlaryňyz
-                        <% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>
-                            (<%= unreadMessages %>)
-                        <% } %>
+                        <span class="nav-unread-count"><% if (typeof unreadMessages !== 'undefined' && unreadMessages > 0) { %>(<%= unreadMessages %>)<% } %></span>
                     </span>
                 </a>
                 <a href="/gadymymiras/admin/feedback" class="nav-item">
@@ -55,17 +53,4 @@
                 </a>
             </div>
         </aside>
-
         <div class="admin-main">
-            <header class="admin-header">
-                <div>
-                    <h1><%= typeof adminTitle !== 'undefined' ? adminTitle : 'Wideolar' %></h1>
-                    <p><%= typeof adminSubtitle !== 'undefined' ? adminSubtitle : 'Saýtdaky wideolary şu ýerden dolandyrmaga bolýar.' %></p>
-                </div>
-                <div class="admin-header-actions">
-                    <a href="/videos" class="btn-outline">
-                        <i class="fas fa-external-link-alt"></i>
-                        Saýtda görmek
-                    </a>
-                </div>
-            </header>

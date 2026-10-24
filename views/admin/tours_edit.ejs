@@ -13,6 +13,7 @@
             <% } %>
 
             <form action="/gadymymiras/admin/tours/<%= tour.id %>/update" method="post" class="login-form" enctype="multipart/form-data">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <div class="form-group">
                     <label for="tour_title">Ady</label>
                     <input type="text" id="tour_title" name="tour_title" value="<%= tour.tour_title %>" required>

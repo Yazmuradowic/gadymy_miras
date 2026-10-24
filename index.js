@@ -2,14 +2,22 @@ const db=require('./db');
 const myEnw={};
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 const multer = require('multer');
 require('dotenv').config({ processEnv: myEnw, path: path.resolve(__dirname, '.env'), override: true });
 const express = require('express');
 const bodyParser = require('body-parser');
 const session = require('express-session');
+const nodemailer = require('nodemailer');
+const { verifyPassword } = require('./password');
 const app = express();
 const port = myEnw.PORT || 3000;
 const GALLERY_VIDEOS_PAGE_SIZE = 15;
+
+if (!myEnw.SESSION_SECRET) {
+  console.error('SESSION_SECRET .env faýlynda kesgitlenmedik. Serwer howpsuzlyk sebäpli başlamaýar.');
+  process.exit(1);
+}
 
 // Настройка EJS как шаблонизатора
 app.set('view engine', 'ejs');
@@ -21,10 +29,84 @@ app.use(bodyParser.json());
 
 // Session
 app.use(session({
-  secret: myEnw.SESSION_SECRET || 'gadymy_miras_secret_key_2026',
+  secret: myEnw.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production'
+  }
 }));
+
+// CSRF token – her session üçin bir gezek döredilýär, formalarda gizlin meýdan hökmünde ulanylýar
+app.use((req, res, next) => {
+  if (!req.session.csrfToken) {
+    req.session.csrfToken = crypto.randomBytes(32).toString('hex');
+  }
+  res.locals.csrfToken = req.session.csrfToken;
+  next();
+});
+
+function verifyCsrf(req, res, next) {
+  const token = req.body && req.body._csrf;
+  if (token && req.session.csrfToken && token === req.session.csrfToken) {
+    return next();
+  }
+  const wantsJson = !!(req.xhr || ((req.headers.accept || '').includes('application/json')));
+  if (wantsJson) {
+    return res.status(403).json({ ok: false, error: 'CSRF token nädogry ýa-da möhleti geçdi. Sahypany täzeläp görüň.' });
+  }
+  res.status(403).send('CSRF token nädogry ýa-da möhleti geçdi. Sahypany täzeläp, täzeden synanyşyň.');
+}
+
+// Login synanyşyklaryny çäklendirmek (brute-force garşy, ýady-esasly ýönekeý limiter)
+const LOGIN_MAX_ATTEMPTS = 5;
+const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const loginAttempts = new Map();
+
+function loginRateLimiter(req, res, next) {
+  const key = req.ip;
+  const now = Date.now();
+  const entry = loginAttempts.get(key);
+
+  if (entry && entry.lockedUntil && entry.lockedUntil > now) {
+    const waitMin = Math.max(1, Math.ceil((entry.lockedUntil - now) / 60000));
+    return res.status(429).render('admin/login', {
+      error: `Köp nädogry synanyşyk. ${waitMin} minutdan soň täzeden synanyşyň.`
+    });
+  }
+  next();
+}
+
+function registerLoginFailure(req) {
+  const key = req.ip;
+  const now = Date.now();
+  const entry = loginAttempts.get(key);
+
+  if (!entry || now - entry.firstAttempt > LOGIN_WINDOW_MS) {
+    loginAttempts.set(key, { count: 1, firstAttempt: now, lockedUntil: 0 });
+    return;
+  }
+
+  entry.count += 1;
+  if (entry.count >= LOGIN_MAX_ATTEMPTS) {
+    entry.lockedUntil = now + LOGIN_WINDOW_MS;
+  }
+  loginAttempts.set(key, entry);
+}
+
+function clearLoginFailures(req) {
+  loginAttempts.delete(req.ip);
+}
+
+// Contact formadan gelýän habarlar üçin email duýduryşy (islege görä, .env-de GMAIL_* bar bolsa işleýär)
+const mailTransporter = (myEnw.GMAIL_USER && myEnw.GMAIL_PASS)
+  ? nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: myEnw.GMAIL_USER, pass: myEnw.GMAIL_PASS }
+    })
+  : null;
 
 // Статические файлы (CSS, JS, изображения)
 app.use(express.static(path.join(__dirname, 'public')));
@@ -48,6 +130,7 @@ const galleryStorage = multer.diskStorage({
 
 const galleryUpload = multer({
   storage: galleryStorage,
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (!file.mimetype || !file.mimetype.startsWith('image/')) {
       return cb(new Error('Diňe surat faýly kabul edilýär.'));
@@ -83,6 +166,7 @@ const videoStorage = multer.diskStorage({
 
 const videoUpload = multer({
   storage: videoStorage,
+  limits: { fileSize: 300 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.fieldname === 'poster_file') {
       if (!file.mimetype || !file.mimetype.startsWith('image/')) {
@@ -117,6 +201,7 @@ const tourStorage = multer.diskStorage({
 
 const tourUpload = multer({
   storage: tourStorage,
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (!file.mimetype || !file.mimetype.startsWith('image/')) {
       return cb(new Error('Diňe surat faýly kabul edilýär.'));
@@ -154,15 +239,15 @@ app.get('/contact', (req, res) => {
   res.render('contact');
 });
 
-// Public gallery – suratlar bazadan (id, gallery_url), 15 sähetde
-app.get('/gallery', (req, res) => {
+// Sahypalanan sanawlary (gallery/videos/tours) render etmek üçin umumy kömekçi
+function paginateAndRender(req, res, { table, columns, view, dataKey, baseUrl, errorMsg }) {
   const requestedPage = Math.max(1, parseInt(req.query.page, 10) || 1);
   const pageSize = GALLERY_VIDEOS_PAGE_SIZE;
 
-  db.query('SELECT COUNT(*) AS c FROM gallery', (cerr, countRows) => {
+  db.query(`SELECT COUNT(*) AS c FROM ${table}`, (cerr, countRows) => {
     if (cerr) {
-      console.error('Gallery count error:', cerr);
-      return res.status(500).send('Galereýa üçin maglumat okalmady');
+      console.error(`${table} count error:`, cerr);
+      return res.status(500).send(errorMsg);
     }
     const total = Number(countRows[0].c) || 0;
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
@@ -170,81 +255,53 @@ app.get('/gallery', (req, res) => {
     const offset = (page - 1) * pageSize;
 
     db.query(
-      'SELECT id, gallery_url FROM gallery ORDER BY id DESC LIMIT ? OFFSET ?',
+      `SELECT ${columns} FROM ${table} ORDER BY id DESC LIMIT ? OFFSET ?`,
       [pageSize, offset],
-      (err, galleryResults) => {
+      (err, rows) => {
         if (err) {
-          console.error('Gallery query error:', err);
-          return res.status(500).send('Galereýa üçin maglumat okalmady');
+          console.error(`${table} query error:`, err);
+          return res.status(500).send(errorMsg);
         }
-        res.render('gallery', {
-          photos: galleryResults,
-          pagination: { page, totalPages, total, pageSize, baseUrl: '/gallery' }
+        res.render(view, {
+          [dataKey]: rows,
+          pagination: { page, totalPages, total, pageSize, baseUrl }
         });
       }
     );
+  });
+}
+
+// Public gallery – suratlar bazadan (id, gallery_url), 15 sähetde
+app.get('/gallery', (req, res) => {
+  paginateAndRender(req, res, {
+    table: 'gallery',
+    columns: 'id, gallery_url',
+    view: 'gallery',
+    dataKey: 'photos',
+    baseUrl: '/gallery',
+    errorMsg: 'Galereýa üçin maglumat okalmady'
   });
 });
 // Public videos – wideolar bazadan, 15 sähetde
 app.get('/videos', (req, res) => {
-  const requestedPage = Math.max(1, parseInt(req.query.page, 10) || 1);
-  const pageSize = GALLERY_VIDEOS_PAGE_SIZE;
-
-  db.query('SELECT COUNT(*) AS c FROM videos', (cerr, countRows) => {
-    if (cerr) {
-      console.error('Videos count error:', cerr);
-      return res.status(500).send('Wideolar üçin maglumat okalmady');
-    }
-    const total = Number(countRows[0].c) || 0;
-    const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    const page = Math.min(requestedPage, totalPages);
-    const offset = (page - 1) * pageSize;
-
-    db.query(
-      'SELECT id, title, video_url, poster_url FROM videos ORDER BY id DESC LIMIT ? OFFSET ?',
-      [pageSize, offset],
-      (err, videoResults) => {
-        if (err) {
-          console.error('Videos query error:', err);
-          return res.status(500).send('Wideolar üçin maglumat okalmady');
-        }
-        res.render('videos', {
-          videos: videoResults,
-          pagination: { page, totalPages, total, pageSize, baseUrl: '/videos' }
-        });
-      }
-    );
+  paginateAndRender(req, res, {
+    table: 'videos',
+    columns: 'id, title, video_url, poster_url',
+    view: 'videos',
+    dataKey: 'videos',
+    baseUrl: '/videos',
+    errorMsg: 'Wideolar üçin maglumat okalmady'
   });
 });
 
 app.get('/tours', (req, res) => {
-  const requestedPage = Math.max(1, parseInt(req.query.page, 10) || 1);
-  const pageSize = GALLERY_VIDEOS_PAGE_SIZE;
-
-  db.query('SELECT COUNT(*) AS c FROM tours', (cerr, countRows) => {
-    if (cerr) {
-      console.error('Tours count error:', cerr);
-      return res.status(500).send('Turlar üçin maglumat okalmady');
-    }
-    const total = Number(countRows[0].c) || 0;
-    const totalPages = Math.max(1, Math.ceil(total / pageSize));
-    const page = Math.min(requestedPage, totalPages);
-    const offset = (page - 1) * pageSize;
-
-    db.query(
-      'SELECT * FROM tours ORDER BY id DESC LIMIT ? OFFSET ?',
-      [pageSize, offset],
-      (err, toursResults) => {
-        if (err) {
-          console.error('Tours query error:', err);
-          return res.status(500).send('Turlar üçin maglumat okalmady');
-        }
-        res.render('tours', {
-          tours: toursResults,
-          pagination: { page, totalPages, total, pageSize, baseUrl: '/tours' }
-        });
-      }
-    );
+  paginateAndRender(req, res, {
+    table: 'tours',
+    columns: '*',
+    view: 'tours',
+    dataKey: 'tours',
+    baseUrl: '/tours',
+    errorMsg: 'Turlar üçin maglumat okalmady'
   });
 });
 
@@ -283,8 +340,8 @@ app.get('/tour/:id', (req, res) => {
 
 app.post('/contact', (req, res) => {
   // console.log('Contact request body:', req.body);
-  const ady = req.body.name;
-  const pocta = req.body.email;
+  const ady = (req.body.name || '').replace(/[\r\n]+/g, ' ').trim();
+  const pocta = (req.body.email || '').replace(/[\r\n]+/g, ' ').trim();
   const message = req.body.message;
 
   // Habary bazada saklaýarys (admin üçin).
@@ -295,6 +352,19 @@ app.post('/contact', (req, res) => {
       if (dbErr) {
         console.error('Contact message DB insert error:', dbErr);
         return res.status(500).json({ ok: false, error: 'DB_ERROR' });
+      }
+
+      // Admin-e email duýduryşy (islege görä – .env-de GMAIL_* we CONTACT_TO bar bolsa)
+      if (mailTransporter && myEnw.CONTACT_TO) {
+        mailTransporter.sendMail({
+          from: myEnw.GMAIL_USER,
+          to: myEnw.CONTACT_TO,
+          replyTo: pocta || undefined,
+          subject: `Gadymy Miras – täze habar: ${ady || 'Näbelli'}`,
+          text: `Ady: ${ady}\nEmail: ${pocta}\n\nHabar:\n${message}`
+        }).catch((mailErr) => {
+          console.error('Contact email send error:', mailErr);
+        });
       }
 
       return res.json({ ok: true });
@@ -344,12 +414,46 @@ app.get('/gadymymiras/admin/messages/:id', (req, res) => {
     return res.redirect('/gadymymiras/login');
   }
   const id = req.params.id;
+  const wantsJson = !!(req.xhr || ((req.headers.accept || '').includes('application/json')));
 
   // okalan diýip belle
   db.query('UPDATE messages SET is_read = 1 WHERE id = ?', [id], (updErr) => {
     if (updErr) {
       console.error('Mark message read error:', updErr);
     }
+
+    // AJAX arkaly açylsa (poçta ýaly modal), diňe habaryň özüni JSON edip iber
+    if (wantsJson) {
+      return db.query(
+        'SELECT id, name, email, message, is_read, created_at FROM messages WHERE id = ?',
+        [id],
+        (oneErr, oneRows) => {
+          if (oneErr) {
+            console.error('Admin message select error:', oneErr);
+            return res.status(500).json({ ok: false, error: 'Habar tapylmady' });
+          }
+          if (!oneRows || !oneRows.length) {
+            return res.status(404).json({ ok: false, error: 'Habar tapylmady' });
+          }
+          const msg = oneRows[0];
+          db.query('SELECT COUNT(*) AS unread FROM messages WHERE is_read = 0', (countErr, countRows) => {
+            res.json({
+              ok: true,
+              message: {
+                id: msg.id,
+                name: msg.name,
+                email: msg.email,
+                message: msg.message,
+                is_read: msg.is_read,
+                created_at: msg.created_at ? msg.created_at.toLocaleString() : ''
+              },
+              unreadMessages: (!countErr && countRows && countRows[0] && countRows[0].unread) || 0
+            });
+          });
+        }
+      );
+    }
+
     // ähli habarlary we saýlanan habary alyp görkez
     db.query(
       'SELECT id, name, email, message, is_read, created_at FROM messages ORDER BY created_at DESC',
@@ -381,7 +485,7 @@ app.get('/gadymymiras/admin/messages/:id', (req, res) => {
 });
 
 // Admin habary pozmak
-app.post('/gadymymiras/admin/messages/:id/delete', (req, res) => {
+app.post('/gadymymiras/admin/messages/:id/delete', verifyCsrf, (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -390,6 +494,31 @@ app.post('/gadymymiras/admin/messages/:id/delete', (req, res) => {
     if (err) {
       console.error('Admin message delete error:', err);
       return res.status(500).send('Habary pozup bolmady');
+    }
+    res.redirect('/gadymymiras/admin/messages');
+  });
+});
+
+// Admin habarlary köpçülikleýin (saýlanan) pozmak
+app.post('/gadymymiras/admin/messages/bulk-delete', verifyCsrf, (req, res) => {
+  if (!req.session.adminLoggedIn) {
+    return res.redirect('/gadymymiras/login');
+  }
+  let ids = req.body.ids;
+  if (!ids) {
+    return res.redirect('/gadymymiras/admin/messages');
+  }
+  if (!Array.isArray(ids)) {
+    ids = [ids];
+  }
+  ids = ids.map((id) => Number(id)).filter((id) => Number.isInteger(id));
+  if (!ids.length) {
+    return res.redirect('/gadymymiras/admin/messages');
+  }
+  db.query('DELETE FROM messages WHERE id IN (?)', [ids], (err) => {
+    if (err) {
+      console.error('Admin messages bulk delete error:', err);
+      return res.status(500).send('Habarlary pozup bolmady');
     }
     res.redirect('/gadymymiras/admin/messages');
   });
@@ -415,7 +544,7 @@ app.get('/gadymymiras/admin/feedback', (req, res) => {
 });
 
 // Admin komment – täze goşmak
-app.post('/gadymymiras/admin/feedback', (req, res) => {
+app.post('/gadymymiras/admin/feedback', verifyCsrf, (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -468,7 +597,7 @@ app.get('/gadymymiras/admin/feedback/:id/edit', (req, res) => {
 });
 
 // Admin komment – üýtgetmek (POST)
-app.post('/gadymymiras/admin/feedback/:id/update', (req, res) => {
+app.post('/gadymymiras/admin/feedback/:id/update', verifyCsrf, (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -498,7 +627,7 @@ app.post('/gadymymiras/admin/feedback/:id/update', (req, res) => {
 });
 
 // Admin komment – pozmak
-app.post('/gadymymiras/admin/feedback/:id/delete', (req, res) => {
+app.post('/gadymymiras/admin/feedback/:id/delete', verifyCsrf, (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -568,7 +697,7 @@ app.get('/gadymymiras/admin/videos', (req, res) => {
 app.post('/gadymymiras/admin/videos', videoUpload.fields([
   { name: 'poster_file', maxCount: 1 },
   { name: 'video_file', maxCount: 1 }
-]), (req, res) => {
+]), verifyCsrf, (req, res) => {
   const wantsJson = !!(req.xhr || ((req.headers.accept || '').includes('application/json')));
 
   if (!req.session.adminLoggedIn) {
@@ -619,7 +748,7 @@ app.post('/gadymymiras/admin/videos', videoUpload.fields([
 app.post('/gadymymiras/admin/videos/:id/update', videoUpload.fields([
   { name: 'poster_file', maxCount: 1 },
   { name: 'video_file', maxCount: 1 }
-]), (req, res) => {
+]), verifyCsrf, (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -679,7 +808,7 @@ app.post('/gadymymiras/admin/videos/:id/update', videoUpload.fields([
 });
 
 // Admin wideolar – pozmak (bazadan we faýldan)
-app.post('/gadymymiras/admin/videos/:id/delete', (req, res) => {
+app.post('/gadymymiras/admin/videos/:id/delete', verifyCsrf, (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -721,7 +850,7 @@ app.post('/gadymymiras/admin/videos/:id/delete', (req, res) => {
 });
 
 // Admin galereýa – täze surat goşmak (faýl ýa-da URL)
-app.post('/gadymymiras/admin/gallery', galleryUpload.single('image_file'), (req, res) => {
+app.post('/gadymymiras/admin/gallery', galleryUpload.single('image_file'), verifyCsrf, (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -763,7 +892,7 @@ app.post('/gadymymiras/admin/gallery', galleryUpload.single('image_file'), (req,
 });
 
 // Admin galereýa – suraty üýtgetmek (faýl ýa-da URL)
-app.post('/gadymymiras/admin/gallery/:id/update', galleryUpload.single('image_file'), (req, res) => {
+app.post('/gadymymiras/admin/gallery/:id/update', galleryUpload.single('image_file'), verifyCsrf, (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -806,7 +935,7 @@ app.post('/gadymymiras/admin/gallery/:id/update', galleryUpload.single('image_fi
 });
 
 // Admin galereýa – suraty pozmak (bazadan we faýldan)
-app.post('/gadymymiras/admin/gallery/:id/delete', (req, res) => {
+app.post('/gadymymiras/admin/gallery/:id/delete', verifyCsrf, (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -864,23 +993,26 @@ app.get('/gadymymiras/login', (req, res) => {
 });
 
 // Admin login POST – admin tablisasyna barlag
-app.post('/gadymymiras/login', (req, res) => {
+app.post('/gadymymiras/login', loginRateLimiter, verifyCsrf, (req, res) => {
   const username = req.body.username;
   const password = req.body.password;
   if (!username || !password) {
     return res.render('admin/login', { error: 'Ulanyjy ady we parol gerek.' });
   }
-  // admin tablisasynda: login we parol sütunlary
-  db.query('SELECT * FROM admin WHERE login = ? AND parol = ?', [username, password], (err, results) => {
+  // admin tablisasynda: login we parol sütunlary (parol hash görnüşinde saklanýar)
+  db.query('SELECT * FROM admin WHERE login = ?', [username], (err, results) => {
     if (err) {
       console.error('Admin login error:', err);
       return res.render('admin/login', { error: 'Serwer ýalňyşlygy. Täzeden synanyşyň.' });
     }
-    if (results.length > 0) {
+    const admin = results[0];
+    if (admin && verifyPassword(password, admin.parol)) {
+      clearLoginFailures(req);
       req.session.adminLoggedIn = true;
-      req.session.adminUser = results[0].username || results[0].login;
+      req.session.adminUser = admin.username || admin.login;
       return res.redirect('/gadymymiras');
     }
+    registerLoginFailure(req);
     res.render('admin/login', { error: 'Ulanyjy ady ýa-da parol nädogry.' });
   });
 });
@@ -936,7 +1068,7 @@ app.get('/gadymymiras/admin/tours', (req, res) => {
 });
 
 // Admin tours – create
-app.post('/gadymymiras/admin/tours', tourUpload.single('tour_picture_file'), (req, res) => {
+app.post('/gadymymiras/admin/tours', tourUpload.single('tour_picture_file'), verifyCsrf, (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -1026,7 +1158,7 @@ app.get('/gadymymiras/admin/tours/:id/edit', (req, res) => {
 });
 
 // Admin tours – update
-app.post('/gadymymiras/admin/tours/:id/update', tourUpload.single('tour_picture_file'), (req, res) => {
+app.post('/gadymymiras/admin/tours/:id/update', tourUpload.single('tour_picture_file'), verifyCsrf, (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -1087,7 +1219,7 @@ app.post('/gadymymiras/admin/tours/:id/update', tourUpload.single('tour_picture_
 });
 
 // Admin tours – delete
-app.post('/gadymymiras/admin/tours/:id/delete', (req, res) => {
+app.post('/gadymymiras/admin/tours/:id/delete', verifyCsrf, (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -1104,4 +1236,27 @@ app.post('/gadymymiras/admin/tours/:id/delete', (req, res) => {
       res.redirect('/gadymymiras/admin/tours');
     });
   });
+});
+
+// Tapylmadyk ýollar üçin 404
+app.use((req, res) => {
+  res.status(404).send('Sahypa tapylmady');
+});
+
+// Umumy ýalňyşlyk barlaýjy (multer faýl çäk ýalňyşlyklary we beýleki garaşylmadyk ýalňyşlyklar)
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+
+  const wantsJson = !!(req.xhr || ((req.headers.accept || '').includes('application/json')));
+
+  if (err instanceof multer.MulterError) {
+    const msg = err.code === 'LIMIT_FILE_SIZE'
+      ? 'Faýl ölçegi rugsat edilenden uly.'
+      : 'Faýl ýüklemede ýalňyşlyk boldy.';
+    if (wantsJson) return res.status(400).json({ ok: false, error: msg });
+    return res.status(400).send(msg);
+  }
+
+  if (wantsJson) return res.status(500).json({ ok: false, error: 'Serwerde garaşylmadyk ýalňyşlyk ýüze çykdy.' });
+  res.status(500).send('Serwerde garaşylmadyk ýalňyşlyk ýüze çykdy.');
 });

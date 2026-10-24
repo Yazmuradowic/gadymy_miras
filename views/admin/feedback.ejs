@@ -34,6 +34,7 @@
                                         <form action="/gadymymiras/admin/feedback/<%= item.id %>/delete" method="post"
                                               style="display:inline;"
                                               onsubmit="return confirm('Bu kommenti hakykatdanam pozmak isleýärsiňizmi?');">
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                             <button type="submit" class="btn-ghost">
                                                 <i class="fas fa-trash"></i> Poz
                                             </button>
@@ -57,6 +58,7 @@
             </div>
 
             <form action="/gadymymiras/admin/feedback" method="post" class="login-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <div class="form-group">
                     <label for="name">Ady</label>
                     <input type="text" id="name" name="name" placeholder="Mysal: Ayna M." required>

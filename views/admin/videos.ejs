@@ -1,4 +1,16 @@
 <%- include('adminpartials/header'); -%>
+            <header class="admin-header">
+                <div>
+                    <h1><%= typeof adminTitle !== 'undefined' ? adminTitle : 'Wideolar' %></h1>
+                    <p><%= typeof adminSubtitle !== 'undefined' ? adminSubtitle : 'Saýtdaky wideolary şu ýerden dolandyrmaga bolýar.' %></p>
+                </div>
+                <div class="admin-header-actions">
+                    <a href="/videos" class="btn-outline">
+                        <i class="fas fa-external-link-alt"></i>
+                        Saýtda görmek
+                    </a>
+                </div>
+            </header>
     <main class="admin-content">
         <section class="admin-section">
             <div class="admin-section-header">
@@ -14,6 +26,7 @@
 
                     <form id="adminVideoUploadForm" action="/gadymymiras/admin/videos" method="post" class="login-form"
                         enctype="multipart/form-data" novalidate>
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                         <div class="form-group">
                             <label for="title"><i class="fas fa-tag"></i> Ady</label>
                             <input type="text" id="title" name="title" placeholder="Mysal: Darwaza wideosy" required>
@@ -66,6 +79,7 @@
                                 <form action="/gadymymiras/admin/videos/<%= video.id %>/update" method="post"
                                     enctype="multipart/form-data"
                                     style="display:flex; flex-direction:column; gap:0.35rem; background:rgba(15,23,42,0.7); padding:0.4rem; border-radius:8px;">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <p>Wideo Ady</p>
                                     <input type="text" name="title" value="<%= video.title || '' %>" placeholder="Ady"
                                         style="padding:0.2rem 0.4rem; border-radius:6px; border:none; font-size:0.8rem;">
@@ -79,6 +93,7 @@
                                         style="padding:0.25rem 0.4rem; border-radius:999px; border:none; font-size:0.75rem; font-weight:600; cursor:pointer; background:#38bdf8; color:#0f172a;">Üýtget</button>
                                 </form>
                                 <form action="/gadymymiras/admin/videos/<%= video.id %>/delete" method="post">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                     <button type="submit"
                                         style="margin-top:0.25rem; padding:0.2rem 0.4rem; border-radius:999px; border:1px solid rgba(248,113,113,0.8); font-size:0.75rem; font-weight:600; cursor:pointer; background:rgba(127,29,29,0.9); color:#fecaca;">
                                         Poz
