@@ -7,7 +7,7 @@
                 <% if (photos && photos.length) { %>
                     <% photos.forEach(function(photo) { %>
                         <div class="gallery-item">
-                            <img src="<%= photo.gallery_url %>" alt="Gallery photo">
+                            <img src="<%= photo.gallery_url %>" alt="Gallery photo" loading="lazy" decoding="async">
                         </div>
                         <% }) %>
                             <% } else { %>

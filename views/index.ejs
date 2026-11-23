@@ -2,10 +2,10 @@
     <!-- BANNER / HERO SECTION -->
     <section id="home" class="hero">
         <div class="hero-slider">
-            <div class="hero-slide active" style="background-image: url('image/banner/banner-1.jpg');"></div>
-            <div class="hero-slide" style="background-image: url('image/banner/banner-2.jpg');"></div>
-            <div class="hero-slide" style="background-image: url('image/banner/banner-3.jpg');"></div>
-            <div class="hero-slide" style="background-image: url('image/banner/banner-4.jpg');"></div>
+            <div class="hero-slide active" style="background-image: url('image/banner/banner-1.webp');"></div>
+            <div class="hero-slide" style="background-image: url('image/banner/banner-2.webp');"></div>
+            <div class="hero-slide" style="background-image: url('image/banner/banner-3.webp');"></div>
+            <div class="hero-slide" style="background-image: url('image/banner/banner-4.webp');"></div>
         </div>
         <div class="hero-overlay"></div>
         <div class="hero-content">
@@ -26,7 +26,7 @@
                 <!-- Darwaza Tour Karty (mysal) -->
                 <div class="tour-card">
                     <div class="card-image">
-                        <img src="<%= tours[i].tour_picture %>" alt="Darwaza gaz krateri geçe">
+                        <img src="<%= tours[i].tour_picture %>" alt="Darwaza gaz krateri geçe" loading="lazy" decoding="async">
                         <div class="popular-badge"><%= tours[i].tour_popularity %></div>
                         <div class="rating">⭐ 4.9 (53 reviews)</div>
                         <div class="tour-location-chip"><span><i class="fas fa-map-marker-alt"></i></span> <%= tours[i].tour_region %></div>
@@ -49,7 +49,7 @@
                                 <span><i class="fas fa-users fa-xs mr-1"></i> 4+ : <strong>$265</strong></span>
                             </div> -->
                         </div>
-                        <a href="/tour/<%= tours[i].id %>" class="read-more">READ MORE</a>
+                        <a href="/tour/<%= tours[i].id %>" class="read-more">Book the Tour</a>
                     </div>
                 </div>
                 <% } %>
@@ -83,6 +83,30 @@
                     </div>
                     <h3>Guide Services</h3>
                     <p>Tours with local guides. Information about historical places and culture.</p>
+                    <a href="#contact" class="service-btn">Book now</a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-passport"></i>
+                    </div>
+                    <h3>LOI &amp; Visa Support</h3>
+                    <p>Letter of Invitation (LOI) and visa support for entering Turkmenistan. We handle the paperwork for you.</p>
+                    <a href="#contact" class="service-btn">Book now</a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3>Group Tour Support</h3>
+                    <p>Full support for group tours: planning, accommodation, transport and guides for groups of any size.</p>
+                    <a href="#contact" class="service-btn">Book now</a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <h3>Transit Support</h3>
+                    <p>Assistance with transit visas, border crossings and travel through Turkmenistan.</p>
                     <a href="#contact" class="service-btn">Book now</a>
                 </div>
             </div>

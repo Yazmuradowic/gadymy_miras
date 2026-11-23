@@ -10,6 +10,7 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const nodemailer = require('nodemailer');
 const { verifyPassword } = require('./password');
+const { webpUploads } = require('./imageWebp');
 const app = express();
 const port = myEnw.PORT || 3000;
 const GALLERY_VIDEOS_PAGE_SIZE = 15;
@@ -100,16 +101,177 @@ function clearLoginFailures(req) {
   loginAttempts.delete(req.ip);
 }
 
-// Contact formadan gelýän habarlar üçin email duýduryşy (islege görä, .env-de GMAIL_* bar bolsa işleýär)
-const mailTransporter = (myEnw.GMAIL_USER && myEnw.GMAIL_PASS)
+// Contact formadan gelýän habarlar korporatiw poçta (Hostinger SMTP) arkaly iberilýär.
+// Bellik: .env bu taslamada process.env-e däl, myEnw obýektine ýüklenýär (ýokarda seret).
+const SMTP_PASS_PLACEHOLDER = 'YOUR_EMAIL_PASSWORD_HERE';
+const smtpConfigured = !!(
+  myEnw.SMTP_HOST && myEnw.SMTP_USER && myEnw.SMTP_PASS &&
+  myEnw.SMTP_PASS !== SMTP_PASS_PLACEHOLDER && myEnw.RECEIVER_EMAIL
+);
+
+const mailTransporter = smtpConfigured
   ? nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user: myEnw.GMAIL_USER, pass: myEnw.GMAIL_PASS }
+      host: myEnw.SMTP_HOST,
+      port: Number(myEnw.SMTP_PORT) || 465,
+      secure: true,
+      auth: { user: myEnw.SMTP_USER, pass: myEnw.SMTP_PASS },
+      // Poçta serweri jogap bermese, ulanyjy 2 minut garaşmasyn
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 30000
     })
   : null;
 
+function describeSmtpError(err) {
+  if (err && err.code === 'EAUTH') {
+    return 'Login/parol kabul edilmedi – .env-däki SMTP_USER we SMTP_PASS barlaň.';
+  }
+  if (err && ['ECONNRESET', 'ETIMEDOUT', 'ESOCKET', 'ECONNECTION', 'ECONNREFUSED', 'EDNS'].includes(err.code)) {
+    return `Tor ýalňyşlygy (${err.code}): serwer ${myEnw.SMTP_HOST}:${myEnw.SMTP_PORT} bilen birikip bilmedi. ` +
+      'Bu tor/prowaýder SMTP portlaryny blokirleýän bolmagy ähtimal – paroldan bagly däl.';
+  }
+  return (err && err.message) || String(err);
+}
+
+if (mailTransporter) {
+  mailTransporter.verify()
+    .then(() => console.log(`SMTP taýýar: ${myEnw.SMTP_HOST} (${myEnw.SMTP_USER})`))
+    .catch((err) => console.error('SMTP birikmesi barlanylanda ýalňyşlyk:', describeSmtpError(err), '|', err.message));
+} else {
+  console.warn('SMTP sazlanmadyk: .env faýlynda SMTP_HOST, SMTP_USER, SMTP_PASS, RECEIVER_EMAIL giriziň. Contact forma email ibermez.');
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+// Contact forma üçin ýönekeý limiter: bir IP-den 10 minutda iň köp 5 habar (spam/poçta dolmagyna garşy)
+const CONTACT_MAX_PER_WINDOW = 5;
+const CONTACT_WINDOW_MS = 10 * 60 * 1000;
+const contactAttempts = new Map();
+
+function contactRateLimiter(req, res, next) {
+  const now = Date.now();
+  const recent = (contactAttempts.get(req.ip) || []).filter((t) => now - t < CONTACT_WINDOW_MS);
+  if (recent.length >= CONTACT_MAX_PER_WINDOW) {
+    contactAttempts.set(req.ip, recent);
+    return res.status(429).json({ ok: false, error: 'Too many messages. Please try again in a few minutes.' });
+  }
+  recent.push(now);
+  contactAttempts.set(req.ip, recent);
+  next();
+}
+
+const EMAIL_REGEX = /^[^\s@<>()",;:]+@[^\s@<>()",;:]+\.[^\s@<>()",;:]{2,}$/;
+
+function validateContact(body) {
+  const asText = (v) => (typeof v === 'string' ? v : '');
+  // Ady we email-de setir geçişleri aýyrýarys (email header injection-a garşy)
+  const name = asText(body.name).replace(/[\r\n]+/g, ' ').trim();
+  const email = asText(body.email).replace(/[\r\n]+/g, '').trim();
+  const message = asText(body.message).replace(/\r\n/g, '\n').trim();
+
+  const errors = {};
+  if (!name) errors.name = 'Adyňyzy giriziň';
+  else if (name.length < 2) errors.name = 'Ad azyndan 2 harp bolmaly';
+  else if (name.length > 100) errors.name = 'Ad 100 harpdan uzyn bolmaly däl';
+
+  if (!email) errors.email = 'Email salgyňyzy giriziň';
+  else if (email.length > 254 || !EMAIL_REGEX.test(email)) errors.email = 'Dogry email salgy giriziň';
+
+  if (!message) errors.message = 'Hat ýazyň';
+  else if (message.length < 10) errors.message = 'Hat azyndan 10 harp bolmaly';
+  else if (message.length > 5000) errors.message = 'Hat 5000 harpdan uzyn bolmaly däl';
+
+  return { data: { name, email, message }, errors };
+}
+
+function buildContactEmail({ name, email, message }, meta) {
+  const rows = [
+    ['Name', name],
+    ['Email', email],
+    ['Sent at', meta.sentAt],
+    ['IP', meta.ip]
+  ];
+
+  const text = [
+    'New message from the gadymymiras.com contact form',
+    '',
+    ...rows.map(([k, v]) => `${k}: ${v}`),
+    '',
+    'Message:',
+    message,
+    '',
+    '— Reply to this email to answer the sender directly.'
+  ].join('\n');
+
+  const rowsHtml = rows.map(([k, v]) => `
+          <tr>
+            <td style="padding:8px 12px;background:#f4f6f8;font-weight:600;color:#2c3e50;width:110px;border-bottom:1px solid #e5e8eb;">${escapeHtml(k)}</td>
+            <td style="padding:8px 12px;color:#333;border-bottom:1px solid #e5e8eb;">${k === 'Email'
+              ? `<a href="mailto:${escapeHtml(v)}" style="color:#3498db;">${escapeHtml(v)}</a>`
+              : escapeHtml(v)}</td>
+          </tr>`).join('');
+
+  const html = `<!doctype html>
+<html>
+  <body style="margin:0;padding:24px;background:#eef1f4;font-family:Arial,Helvetica,sans-serif;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;">
+      <tr>
+        <td style="background:#2c3e50;color:#fff;padding:18px 24px;font-size:18px;font-weight:bold;">
+          New contact form message
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:20px 24px;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;font-size:14px;">${rowsHtml}
+          </table>
+          <h3 style="margin:24px 0 8px;color:#2c3e50;font-size:15px;">Message</h3>
+          <div style="padding:14px 16px;background:#f9fafb;border-left:4px solid #3498db;color:#333;font-size:14px;line-height:1.6;white-space:normal;">
+            ${escapeHtml(message).replace(/\n/g, '<br>')}
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:14px 24px;background:#f4f6f8;color:#7f8c8d;font-size:12px;">
+          Sent from the gadymymiras.com contact form. Press “Reply” to answer ${escapeHtml(name)} directly.
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+  return { text, html };
+}
+
 // Статические файлы (CSS, JS, изображения)
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Ähli suratlar WebP-e öwrüldi: köne .jpg/.png salgy soralsa we ol faýl ýok bolsa,
+// şol atly .webp faýla ugrukdyrýarys (köne baza ýazgylary / keşlenen sahypalar üçin).
+const imageRootDir = path.join(__dirname, 'public', 'image');
+app.use('/image', (req, res, next) => {
+  if ((req.method !== 'GET' && req.method !== 'HEAD') || !/\.(jpe?g|png|gif|bmp)$/i.test(req.path)) {
+    return next();
+  }
+  let relPath;
+  try {
+    relPath = decodeURIComponent(req.path);
+  } catch {
+    return next();
+  }
+  const webpAbs = path.resolve(imageRootDir, '.' + relPath.replace(/\.[^./]+$/, '.webp'));
+  if (!webpAbs.startsWith(imageRootDir + path.sep)) return next();
+  fs.access(webpAbs, fs.constants.F_OK, (err) => {
+    if (err) return next();
+    res.redirect(301, '/image' + req.path.replace(/\.[^./]+$/, '.webp'));
+  });
+});
 
 // Suratlar üçin upload konfigurasiýasy
 const galleryUploadDir = path.join(__dirname, 'public', 'image', 'galery');
@@ -338,38 +500,52 @@ app.get('/tour/:id', (req, res) => {
 
 
 
-app.post('/contact', (req, res) => {
-  // console.log('Contact request body:', req.body);
-  const ady = (req.body.name || '').replace(/[\r\n]+/g, ' ').trim();
-  const pocta = (req.body.email || '').replace(/[\r\n]+/g, ' ').trim();
-  const message = req.body.message;
+// Contact forma: barlag -> korporatiw poçta iberilýär + admin panel üçin bazada saklanýar
+app.post('/api/contact', verifyCsrf, contactRateLimiter, async (req, res) => {
+  const { data, errors } = validateContact(req.body || {});
+  if (Object.keys(errors).length) {
+    return res.status(400).json({ ok: false, error: 'Please check the highlighted fields.', errors });
+  }
 
-  // Habary bazada saklaýarys (admin üçin).
-  db.query(
-    'INSERT INTO messages (name, email, message, is_read, created_at) VALUES (?, ?, ?, 0, NOW())',
-    [ady, pocta, message],
-    (dbErr) => {
-      if (dbErr) {
-        console.error('Contact message DB insert error:', dbErr);
-        return res.status(500).json({ ok: false, error: 'DB_ERROR' });
+  if (!mailTransporter) {
+    console.error('Contact form: SMTP sazlanmadyk, email iberip bolmady.');
+    return res.status(500).json({ ok: false, error: 'The message could not be sent. Please try again later or email us directly at travel@gadymymiras.com.' });
+  }
+
+  // Admin paneldäki "Habarlar" bölümi üçin bazada saklaýarys (ýalňyşlyk bolsa diňe log – esasy kanal email)
+  const dbSave = new Promise((resolve) => {
+    db.query(
+      'INSERT INTO messages (name, email, message, is_read, created_at) VALUES (?, ?, ?, 0, NOW())',
+      [data.name, data.email, data.message],
+      (dbErr) => {
+        if (dbErr) console.error('Contact message DB insert error:', dbErr);
+        resolve();
       }
+    );
+  });
 
-      // Admin-e email duýduryşy (islege görä – .env-de GMAIL_* we CONTACT_TO bar bolsa)
-      if (mailTransporter && myEnw.CONTACT_TO) {
-        mailTransporter.sendMail({
-          from: myEnw.GMAIL_USER,
-          to: myEnw.CONTACT_TO,
-          replyTo: pocta || undefined,
-          subject: `Gadymy Miras – täze habar: ${ady || 'Näbelli'}`,
-          text: `Ady: ${ady}\nEmail: ${pocta}\n\nHabar:\n${message}`
-        }).catch((mailErr) => {
-          console.error('Contact email send error:', mailErr);
-        });
-      }
+  const { text, html } = buildContactEmail(data, {
+    sentAt: new Date().toLocaleString('en-GB', { timeZone: 'Asia/Ashgabat' }) + ' (Ashgabat)',
+    ip: req.ip
+  });
 
-      return res.json({ ok: true });
-    }
-  );
+  try {
+    await mailTransporter.sendMail({
+      from: `"Gadymy Miras Website" <${myEnw.SMTP_USER}>`,
+      to: myEnw.RECEIVER_EMAIL,
+      replyTo: { name: data.name, address: data.email },
+      subject: `New website inquiry from ${data.name}`,
+      text,
+      html
+    });
+  } catch (mailErr) {
+    console.error('Contact email send error:', describeSmtpError(mailErr), '|', mailErr.message);
+    await dbSave;
+    return res.status(500).json({ ok: false, error: 'The message could not be sent. Please try again later or email us directly at travel@gadymymiras.com.' });
+  }
+
+  await dbSave;
+  return res.status(200).json({ ok: true, message: 'Thank you! Your message has been sent. We will contact you shortly.' });
 });
 
 // Admin routlary üçin – okuňmadyk habar sanyny ähli şablonlara berjek middleware
@@ -697,7 +873,7 @@ app.get('/gadymymiras/admin/videos', (req, res) => {
 app.post('/gadymymiras/admin/videos', videoUpload.fields([
   { name: 'poster_file', maxCount: 1 },
   { name: 'video_file', maxCount: 1 }
-]), verifyCsrf, (req, res) => {
+]), verifyCsrf, webpUploads('poster_file'), (req, res) => {
   const wantsJson = !!(req.xhr || ((req.headers.accept || '').includes('application/json')));
 
   if (!req.session.adminLoggedIn) {
@@ -748,7 +924,7 @@ app.post('/gadymymiras/admin/videos', videoUpload.fields([
 app.post('/gadymymiras/admin/videos/:id/update', videoUpload.fields([
   { name: 'poster_file', maxCount: 1 },
   { name: 'video_file', maxCount: 1 }
-]), verifyCsrf, (req, res) => {
+]), verifyCsrf, webpUploads('poster_file'), (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -850,7 +1026,7 @@ app.post('/gadymymiras/admin/videos/:id/delete', verifyCsrf, (req, res) => {
 });
 
 // Admin galereýa – täze surat goşmak (faýl ýa-da URL)
-app.post('/gadymymiras/admin/gallery', galleryUpload.single('image_file'), verifyCsrf, (req, res) => {
+app.post('/gadymymiras/admin/gallery', galleryUpload.single('image_file'), verifyCsrf, webpUploads('image_file'), (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -892,7 +1068,7 @@ app.post('/gadymymiras/admin/gallery', galleryUpload.single('image_file'), verif
 });
 
 // Admin galereýa – suraty üýtgetmek (faýl ýa-da URL)
-app.post('/gadymymiras/admin/gallery/:id/update', galleryUpload.single('image_file'), verifyCsrf, (req, res) => {
+app.post('/gadymymiras/admin/gallery/:id/update', galleryUpload.single('image_file'), verifyCsrf, webpUploads('image_file'), (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -1068,7 +1244,7 @@ app.get('/gadymymiras/admin/tours', (req, res) => {
 });
 
 // Admin tours – create
-app.post('/gadymymiras/admin/tours', tourUpload.single('tour_picture_file'), verifyCsrf, (req, res) => {
+app.post('/gadymymiras/admin/tours', tourUpload.single('tour_picture_file'), verifyCsrf, webpUploads('tour_picture_file'), (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -1158,7 +1334,7 @@ app.get('/gadymymiras/admin/tours/:id/edit', (req, res) => {
 });
 
 // Admin tours – update
-app.post('/gadymymiras/admin/tours/:id/update', tourUpload.single('tour_picture_file'), verifyCsrf, (req, res) => {
+app.post('/gadymymiras/admin/tours/:id/update', tourUpload.single('tour_picture_file'), verifyCsrf, webpUploads('tour_picture_file'), (req, res) => {
   if (!req.session.adminLoggedIn) {
     return res.redirect('/gadymymiras/login');
   }
@@ -1255,6 +1431,12 @@ app.use((err, req, res, next) => {
       : 'Faýl ýüklemede ýalňyşlyk boldy.';
     if (wantsJson) return res.status(400).json({ ok: false, error: msg });
     return res.status(400).send(msg);
+  }
+
+  // Ýüklenen faýl surat hökmünde okalmady (WebP-e öwrülmedi)
+  if (err.code === 'IMAGE_CONVERT_FAILED') {
+    if (wantsJson) return res.status(400).json({ ok: false, error: err.message });
+    return res.status(400).send(err.message);
   }
 
   if (wantsJson) return res.status(500).json({ ok: false, error: 'Serwerde garaşylmadyk ýalňyşlyk ýüze çykdy.' });

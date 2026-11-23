@@ -232,47 +232,73 @@ if (contactForm) {
             isValid = false;
         }
 
-        if (isValid) {
-            const submitBtn = contactForm.querySelector('button[type="submit"]');
-            const originalBtnHTML = submitBtn ? submitBtn.innerHTML : null;
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<span class="loader"></span>Sending...';
-            }
+        if (!isValid) return;
 
-            fetch('/contact', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    name: name.value,
-                    email: email.value,
-                    message: message.value
-                })
-            })
-            .then(res => {
-                if (!res.ok) throw new Error('Server returned ' + res.status);
-                const ct = res.headers.get('content-type') || '';
-                if (ct.includes('application/json')) return res.json();
-                return res.text().then(() => ({}));
-            })
-            .then(data => {
-                alert('Thank you! Your message has been sent. We will contact you shortly.');
-                contactForm.reset();
-            })
-            .catch(err => {
-                alert('An error occurred, please try again later.');
-                console.error(err);
-            })
-            .finally(() => {
-                if (submitBtn) {
-                    submitBtn.disabled = false;
-                    if (originalBtnHTML !== null) submitBtn.innerHTML = originalBtnHTML;
-                }
-            });
+        const submitBtn = contactForm.querySelector('button[type="submit"]');
+        const statusBox = contactForm.querySelector('.form-status');
+        const csrfInput = contactForm.querySelector('input[name="_csrf"]');
+        const originalBtnHTML = submitBtn ? submitBtn.innerHTML : null;
+        const genericError = 'An error occurred, please try again later.';
+
+        setFormStatus(statusBox, '', null);
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.setAttribute('aria-busy', 'true');
+            submitBtn.innerHTML = '<span class="loader"></span>Sending...';
         }
+
+        fetch(contactForm.getAttribute('action') || '/api/contact', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                _csrf: csrfInput ? csrfInput.value : '',
+                name: name.value,
+                email: email.value,
+                message: message.value
+            })
+        })
+        .then(res => {
+            const ct = res.headers.get('content-type') || '';
+            const parse = ct.includes('application/json') ? res.json() : Promise.resolve({});
+            return parse.then(data => ({ ok: res.ok, status: res.status, data: data || {} }));
+        })
+        .then(({ ok, status, data }) => {
+            if (ok && data.ok) {
+                setFormStatus(statusBox, data.message || 'Thank you! Your message has been sent. We will contact you shortly.', 'success');
+                contactForm.reset();
+                return;
+            }
+            // Serwerden gelen meýdan ýalňyşlyklary (400)
+            if (status === 400 && data.errors) {
+                if (data.errors.name) showError(name, data.errors.name);
+                if (data.errors.email) showError(email, data.errors.email);
+                if (data.errors.message) showError(message, data.errors.message);
+            }
+            setFormStatus(statusBox, data.error || genericError, 'error');
+        })
+        .catch(err => {
+            console.error(err);
+            setFormStatus(statusBox, 'Network error. Please check your connection and try again.', 'error');
+        })
+        .finally(() => {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.removeAttribute('aria-busy');
+                if (originalBtnHTML !== null) submitBtn.innerHTML = originalBtnHTML;
+            }
+        });
     });
+}
+
+function setFormStatus(box, text, type) {
+    if (!box) return;
+    box.textContent = text;
+    box.classList.remove('is-success', 'is-error');
+    if (type) box.classList.add(type === 'success' ? 'is-success' : 'is-error');
+    box.hidden = !text;
 }
 
 function showError(input, message) {

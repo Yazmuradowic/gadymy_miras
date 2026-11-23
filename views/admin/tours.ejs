@@ -14,7 +14,7 @@
                                 <% if (picUrl) { %>
                                     <img src="<%= picUrl %>" alt="<%= tour.tour_title %>">
                                 <% } else { %>
-                                    <img src="/image/banner/banner-1.jpg" alt="placeholder">
+                                    <img src="/image/banner/banner-1.webp" alt="placeholder">
                                 <% } %>
                                 <% if (tour.tour_popularity) { %>
                                     <div class="popular-badge"><%= tour.tour_popularity %></div>
@@ -79,7 +79,7 @@
                 </div>
                 <div class="form-group">
                     <label for="tour_picture">Surat URL (isleseňiz)</label>
-                    <input type="text" id="tour_picture" name="tour_picture" placeholder="/image/tour/1.jpg">
+                    <input type="text" id="tour_picture" name="tour_picture" placeholder="/image/tour/1.webp">
                 </div>
                 <div class="form-group">
                     <label for="tour_popularity">Popularity</label>

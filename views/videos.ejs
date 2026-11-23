@@ -9,7 +9,7 @@
                         <% videos.forEach(function(video) { %>
                             <div class="video-item" onclick="playVideo(this)">
                                 <div class="video-wrapper">
-                                    <img src="<%= video.poster_url %>" alt="<%= video.title || 'Video' %>" class="poster">
+                                    <img src="<%= video.poster_url %>" alt="<%= video.title || 'Video' %>" class="poster" loading="lazy" decoding="async">
                                     <video controls data-src="<%= video.video_url %>"></video>
                                     <div class="play-button"></div>
                                 </div>
