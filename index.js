@@ -13,6 +13,10 @@ const { verifyPassword } = require('./password');
 const { webpUploads } = require('./imageWebp');
 const app = express();
 const port = myEnw.PORT || 3000;
+
+// Saýt nginx (reverse proxy) arkaly işleýär: hakyky müşderi IP-si X-Forwarded-For sözbaşysynda gelýär.
+// Diňe şol serwerdäki (loopback) proksä ynanýarys – daşardan gelen ýasama sözbaşylar hasaba alynmaýar.
+app.set('trust proxy', 'loopback');
 const GALLERY_VIDEOS_PAGE_SIZE = 15;
 
 if (!myEnw.SESSION_SECRET) {
@@ -526,7 +530,7 @@ app.post('/api/contact', verifyCsrf, contactRateLimiter, async (req, res) => {
 
   const { text, html } = buildContactEmail(data, {
     sentAt: new Date().toLocaleString('en-GB', { timeZone: 'Asia/Ashgabat' }) + ' (Ashgabat)',
-    ip: req.ip
+    ip: String(req.ip || '').replace(/^::ffff:/, '') || 'unknown'
   });
 
   try {
