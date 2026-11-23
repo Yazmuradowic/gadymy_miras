@@ -199,8 +199,7 @@ function buildContactEmail({ name, email, message }, meta) {
   const rows = [
     ['Name', name],
     ['Email', email],
-    ['Sent at', meta.sentAt],
-    ['IP', meta.ip]
+    ['Sent at', meta.sentAt]
   ];
 
   const text = [
@@ -529,8 +528,7 @@ app.post('/api/contact', verifyCsrf, contactRateLimiter, async (req, res) => {
   });
 
   const { text, html } = buildContactEmail(data, {
-    sentAt: new Date().toLocaleString('en-GB', { timeZone: 'Asia/Ashgabat' }) + ' (Ashgabat)',
-    ip: String(req.ip || '').replace(/^::ffff:/, '') || 'unknown'
+    sentAt: new Date().toLocaleString('en-GB', { timeZone: 'Asia/Ashgabat' }) + ' (Ashgabat)'
   });
 
   try {
