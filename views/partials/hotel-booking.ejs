@@ -1,0 +1,98 @@
+    <!-- HOTEL BOOKING MODAL -->
+    <div class="hb-overlay" id="hotelBookingOverlay" hidden>
+        <div class="hb-modal" role="dialog" aria-modal="true" aria-labelledby="hbTitle">
+            <button type="button" class="hb-close" data-hb-close aria-label="Close">&times;</button>
+
+            <h2 class="hb-title" id="hbTitle">Hotel Booking Request</h2>
+            <p class="hb-subtitle">Choose a hotel and dates — our manager will confirm availability and price.</p>
+
+            <form class="hb-form" id="hotelBookingForm" novalidate>
+                <fieldset class="hb-field">
+                    <legend class="hb-label">City</legend>
+                    <div class="hb-chips" id="hbCities"></div>
+                </fieldset>
+
+                <fieldset class="hb-field">
+                    <legend class="hb-label">Hotel</legend>
+                    <div class="hb-hotels" id="hbHotels"></div>
+                </fieldset>
+
+                <div class="hb-row">
+                    <div class="hb-field">
+                        <label class="hb-label" for="hbCheckin">Check-in</label>
+                        <input class="hb-input" type="date" id="hbCheckin" name="checkin" required>
+                    </div>
+                    <div class="hb-field">
+                        <label class="hb-label" for="hbCheckout">Check-out</label>
+                        <input class="hb-input" type="date" id="hbCheckout" name="checkout" required>
+                    </div>
+                </div>
+                <p class="hb-nights" id="hbNights" hidden></p>
+
+                <div class="hb-row">
+                    <div class="hb-field">
+                        <span class="hb-label" id="hbAdultsLabel">Adults</span>
+                        <div class="hb-stepper" data-min="1" data-max="10" aria-labelledby="hbAdultsLabel">
+                            <button type="button" class="hb-step" data-step="-1" aria-label="Fewer adults">&minus;</button>
+                            <output class="hb-step-value" id="hbAdults" aria-live="polite">2</output>
+                            <button type="button" class="hb-step" data-step="1" aria-label="More adults">+</button>
+                        </div>
+                    </div>
+                    <div class="hb-field">
+                        <span class="hb-label" id="hbChildrenLabel">Children</span>
+                        <div class="hb-stepper" data-min="0" data-max="10" aria-labelledby="hbChildrenLabel">
+                            <button type="button" class="hb-step" data-step="-1" aria-label="Fewer children">&minus;</button>
+                            <output class="hb-step-value" id="hbChildren" aria-live="polite">0</output>
+                            <button type="button" class="hb-step" data-step="1" aria-label="More children">+</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="hb-row">
+                    <div class="hb-field">
+                        <label class="hb-label" for="hbRooms">Rooms</label>
+                        <select class="hb-input" id="hbRooms" name="rooms">
+                            <option>1</option>
+                            <option>2</option>
+                            <option>3</option>
+                            <option>4</option>
+                            <option>5</option>
+                        </select>
+                    </div>
+                    <div class="hb-field">
+                        <label class="hb-label" for="hbRoomType">Room type</label>
+                        <select class="hb-input" id="hbRoomType" name="roomType">
+                            <option>Standard</option>
+                            <option>Deluxe</option>
+                            <option>Suite</option>
+                            <option>Family</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="hb-field">
+                    <label class="hb-label" for="hbName">Full name</label>
+                    <input class="hb-input" type="text" id="hbName" name="name" placeholder="Ahmet Ahmedow" autocomplete="name" required>
+                </div>
+
+                <div class="hb-field">
+                    <label class="hb-label" for="hbPhone">Phone / WhatsApp</label>
+                    <input class="hb-input" type="tel" id="hbPhone" name="phone" placeholder="+993 65 123456" autocomplete="tel" required>
+                </div>
+
+                <div class="hb-field">
+                    <label class="hb-label" for="hbEmail">Email</label>
+                    <input class="hb-input" type="email" id="hbEmail" name="email" placeholder="ahmet@example.com" autocomplete="email" required>
+                </div>
+
+                <div class="hb-field">
+                    <label class="hb-label" for="hbWishes">Wishes <span class="hb-optional">(optional)</span></label>
+                    <textarea class="hb-input hb-textarea" id="hbWishes" name="wishes" rows="3" placeholder="Airport transfer, late check-in, non-smoking…"></textarea>
+                </div>
+
+                <button type="submit" class="hb-submit">Send request via WhatsApp</button>
+                <p class="hb-note">No prepayment needed to send a request.</p>
+            </form>
+        </div>
+    </div>
+    <script src="/js/hotel-booking.js?v=1" defer></script>

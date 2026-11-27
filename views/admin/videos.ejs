@@ -1,4 +1,5 @@
 <%- include('adminpartials/header'); -%>
+<% const pg = typeof pagination !== 'undefined' ? pagination : { page: 1, total: (videos || []).length }; %>
             <header class="admin-header">
                 <div>
                     <h1><%= typeof adminTitle !== 'undefined' ? adminTitle : 'Wideolar' %></h1>
@@ -22,6 +23,12 @@
                     <i class="fas fa-exclamation-circle"></i>
                     <%= error %>
                 </div>
+                <% } %>
+                <% if (typeof success !== 'undefined' && success) { %>
+                    <div class="admin-success">
+                        <i class="fas fa-check-circle"></i>
+                        <%= success %>
+                    </div>
                 <% } %>
 
                     <form id="adminVideoUploadForm" action="/gadymymiras/admin/videos" method="post" class="login-form"
@@ -55,14 +62,29 @@
         </section>
 
         <section class="admin-section" style="margin-top: 1.5rem;">
-            <div class="admin-section-header">
-                <h2>Bar bolan wideolar</h2>
+            <div class="admin-section-header admin-list-header">
+                <h2>Bar bolan wideolar <span class="admin-count">(<%= pg.total %>)</span></h2>
+
+                <% if (videos && videos.length) { %>
+                    <form id="videosBulkForm" class="bulk-actions js-bulk-form"
+                        action="/gadymymiras/admin/videos/bulk-delete" method="post"
+                        data-confirm="Saýlanan wideolary hakykatdanam pozmak isleýärsiňizmi? Wideo we poster faýllary hem pozular.">
+                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                        <input type="hidden" name="page" value="<%= pg.page %>">
+                        <label class="bulk-select-all">
+                            <input type="checkbox" class="js-select-all"> Şu sahypadakylaryň hemmesini saýla
+                        </label>
+                        <button type="submit" class="btn-ghost js-bulk-submit" disabled>
+                            <i class="fas fa-trash"></i> Saýlananlary poz (<span class="js-bulk-count">0</span>)
+                        </button>
+                    </form>
+                <% } %>
             </div>
 
             <% if (videos && videos.length) { %>
                 <div class="gallery-grid">
                     <% videos.forEach(function(video) { %>
-                        <div class="gallery-item" style="position: relative;">
+                        <div class="gallery-item js-selectable" style="position: relative;">
                             <div class="video-item">
                                 <div class="video-wrapper">
                                     <img src="<%= video.poster_url %>" alt="<%= video.title || 'Video' %>"
@@ -80,6 +102,7 @@
                                     enctype="multipart/form-data"
                                     style="display:flex; flex-direction:column; gap:0.35rem; background:rgba(15,23,42,0.7); padding:0.4rem; border-radius:8px;">
                                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="page" value="<%= pg.page %>">
                                     <p>Wideo Ady</p>
                                     <input type="text" name="title" value="<%= video.title || '' %>" placeholder="Ady"
                                         style="padding:0.2rem 0.4rem; border-radius:6px; border:none; font-size:0.8rem;">
@@ -92,17 +115,26 @@
                                     <button type="submit"
                                         style="padding:0.25rem 0.4rem; border-radius:999px; border:none; font-size:0.75rem; font-weight:600; cursor:pointer; background:#38bdf8; color:#0f172a;">Üýtget</button>
                                 </form>
-                                <form action="/gadymymiras/admin/videos/<%= video.id %>/delete" method="post">
+                                <form action="/gadymymiras/admin/videos/<%= video.id %>/delete" method="post"
+                                    data-confirm="Bu wideony hakykatdanam pozmak isleýärsiňizmi?">
                                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <input type="hidden" name="page" value="<%= pg.page %>">
                                     <button type="submit"
                                         style="margin-top:0.25rem; padding:0.2rem 0.4rem; border-radius:999px; border:1px solid rgba(248,113,113,0.8); font-size:0.75rem; font-weight:600; cursor:pointer; background:rgba(127,29,29,0.9); color:#fecaca;">
                                         Poz
                                     </button>
                                 </form>
                             </div>
+                            <label class="select-badge" title="Köpçülikleýin pozmak üçin saýla">
+                                <input type="checkbox" class="js-select-item" name="ids" value="<%= video.id %>"
+                                    form="videosBulkForm">
+                                <span>Saýla</span>
+                            </label>
                         </div>
                         <% }) %>
                 </div>
+
+                <%- include('../partials/pagination'); -%>
                 <% } else { %>
                     <p style="padding: 0.5rem 0; text-align:center; color:#e5e7eb;">Entäk hiç hili wideo goşulmady.</p>
                     <% } %>

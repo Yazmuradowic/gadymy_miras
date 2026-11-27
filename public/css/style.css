@@ -1778,3 +1778,359 @@ footer {
         font-size: 1.4rem;
     }
 }
+
+/* HOTEL BOOKING MODAL */
+button.service-btn {
+    border: none;
+    font: inherit;
+    cursor: pointer;
+}
+
+body.hb-lock {
+    overflow: hidden;
+}
+
+.hb-overlay {
+    --hb-text: #1f2a37;
+    --hb-muted: #6b7280;
+    --hb-border: #d5dde8;
+    --hb-field-bg: #f5f8fc;
+    --hb-accent: #3b82c4;
+    --hb-accent-bg: #eef5fc;
+    --hb-dark: #2c3e50;
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(17, 24, 39, 0.55);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.hb-overlay[hidden] {
+    display: none;
+}
+
+.hb-overlay.is-open {
+    opacity: 1;
+}
+
+.hb-modal {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    max-height: calc(100vh - 2rem);
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    background: var(--white);
+    color: var(--hb-text);
+    border-radius: 16px;
+    padding: 1.5rem 1.25rem 1.25rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    transform: translateY(16px);
+    transition: transform 0.2s ease;
+}
+
+.hb-overlay.is-open .hb-modal {
+    transform: translateY(0);
+}
+
+.hb-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.9rem;
+    width: 36px;
+    height: 36px;
+    border: none;
+    background: transparent;
+    color: var(--hb-muted);
+    font-size: 1.9rem;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.hb-close:hover {
+    color: var(--hb-text);
+    background: var(--hb-field-bg);
+}
+
+.hb-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.25;
+    padding-right: 2.5rem;
+    color: var(--hb-text);
+}
+
+.hb-subtitle {
+    margin: 0.25rem 0 1rem;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    color: var(--hb-muted);
+}
+
+.hb-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.hb-field {
+    border: none;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.hb-label {
+    padding: 0;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--hb-text);
+}
+
+.hb-optional {
+    font-weight: 400;
+    color: var(--hb-muted);
+}
+
+.hb-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+/* City chips */
+.hb-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.hb-chip input,
+.hb-hotel input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.hb-chip span {
+    display: inline-block;
+    padding: 0.45rem 1rem;
+    border: 1px solid var(--hb-border);
+    border-radius: 999px;
+    font-size: 0.9rem;
+    color: var(--hb-text);
+    background: var(--white);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.hb-chip span:hover {
+    border-color: var(--hb-accent);
+}
+
+.hb-chip input:checked + span {
+    background: var(--hb-dark);
+    border-color: var(--hb-dark);
+    color: var(--white);
+}
+
+.hb-chip input:focus-visible + span {
+    outline: 2px solid var(--hb-accent);
+    outline-offset: 2px;
+}
+
+/* Hotel cards */
+.hb-hotels {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.hb-hotel {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem;
+    border: 1px solid var(--hb-border);
+    border-radius: 10px;
+    background: var(--white);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.hb-hotel:hover {
+    border-color: var(--hb-accent);
+}
+
+.hb-hotel:has(input:checked) {
+    border: 2px solid var(--hb-accent);
+    padding: calc(0.6rem - 1px);
+    background: var(--hb-accent-bg);
+}
+
+.hb-hotel:has(input:focus-visible) {
+    outline: 2px solid var(--hb-accent);
+    outline-offset: 2px;
+}
+
+.hb-hotel-icon {
+    flex: 0 0 auto;
+    width: 60px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    background: #e8eef6;
+    font-size: 1.5rem;
+}
+
+.hb-hotel-body {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.3;
+}
+
+.hb-hotel-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--hb-text);
+}
+
+.hb-hotel-stars {
+    color: #f5a623;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+}
+
+.hb-hotel-note {
+    font-size: 0.78rem;
+    color: var(--hb-muted);
+}
+
+/* Inputs */
+.hb-input {
+    width: 100%;
+    min-height: 44px;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--hb-border);
+    border-radius: 8px;
+    background: var(--hb-field-bg);
+    color: var(--hb-text);
+    font: inherit;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hb-input:focus {
+    outline: none;
+    border-color: var(--hb-accent);
+    box-shadow: 0 0 0 3px rgba(59, 130, 196, 0.18);
+    background: var(--white);
+}
+
+.hb-input::placeholder {
+    color: #9aa5b4;
+}
+
+.hb-textarea {
+    resize: vertical;
+    min-height: 70px;
+}
+
+.hb-nights {
+    margin-top: -0.5rem;
+    font-size: 0.85rem;
+    color: var(--hb-accent);
+}
+
+/* Steppers */
+.hb-stepper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 44px;
+    border: 1px solid var(--hb-border);
+    border-radius: 8px;
+    background: var(--hb-field-bg);
+}
+
+.hb-step {
+    width: 44px;
+    height: 42px;
+    border: none;
+    background: transparent;
+    color: var(--hb-text);
+    font-size: 1.3rem;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.hb-step:hover:not(:disabled) {
+    background: #e8eef6;
+}
+
+.hb-step:disabled {
+    color: #c3cbd6;
+    cursor: default;
+}
+
+.hb-step-value {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+/* Submit */
+.hb-submit {
+    margin-top: 0.75rem;
+    width: 100%;
+    min-height: 48px;
+    border: none;
+    border-radius: 10px;
+    background: var(--hb-dark);
+    color: var(--white);
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.hb-submit:hover {
+    background: #1f2d3a;
+}
+
+.hb-note {
+    margin-top: -0.4rem;
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--hb-muted);
+}
+
+/* Telefonda aşakdan çykýan panel */
+@media (max-width: 600px) {
+    .hb-overlay {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .hb-modal {
+        max-width: none;
+        max-height: calc(100vh - 1.5rem);
+        max-height: calc(100dvh - 1.5rem);
+        border-radius: 16px 16px 0 0;
+        padding: 1.25rem 1rem 1rem;
+        transform: translateY(40px);
+    }
+}
